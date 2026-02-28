@@ -29,6 +29,13 @@ function ModeIcon({ mode, size = 20, color = WH }) {
             <path d="M7 19h10" />
         </svg>
     );
+    if (mode === "metro") return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 2L4 7v10l8 5 8-5V7l-8-5z" />
+            <path d="M12 2v20" /><path d="M4 7l8 5 8-5" />
+            <circle cx="12" cy="12" r="2.5" fill={color} stroke="none" />
+        </svg>
+    );
     return null;
 }
 
@@ -246,7 +253,104 @@ export default function RoutePanel({ userLocation, markers = [], onRouteCalculat
                                     highlight={route.isBest}
                                     color={route.costAmount === 0 ? "#22c55e" : Y}
                                 />
+                                {route.frequency && (
+                                    <StatItem
+                                        label="FREQUENCY"
+                                        value={route.frequency}
+                                        highlight={false}
+                                    />
+                                )}
                             </div>
+
+                            {/* Metro details */}
+                            {route.mode === "metro" && (
+                                <div style={{
+                                    marginTop: 8,
+                                    padding: "8px 12px",
+                                    background: "rgba(255,255,255,.02)",
+                                    border: "1px solid rgba(255,255,255,.06)",
+                                    fontSize: 12,
+                                    fontFamily: "'DM Sans',sans-serif",
+                                    color: "rgba(255,255,255,.5)",
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: 4,
+                                }}>
+                                    <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                                        <span style={{
+                                            width: 8, height: 8, borderRadius: "50%",
+                                            background: route.lineColor || Y,
+                                            display: "inline-block", flexShrink: 0,
+                                        }} />
+                                        <span>{route.boarding}</span>
+                                        <span style={{ color: "rgba(255,255,255,.25)" }}>→</span>
+                                        {route.interchange && (
+                                            <>
+                                                <span style={{ color: "#f59e0b" }}>{route.interchange}</span>
+                                                <span style={{ color: "rgba(255,255,255,.25)" }}>→</span>
+                                            </>
+                                        )}
+                                        <span>{route.alighting}</span>
+                                    </div>
+                                    <div style={{ display: "flex", gap: 12, flexWrap: "wrap", fontSize: 11, color: "rgba(255,255,255,.35)" }}>
+                                        <span>{route.stationCount} stations</span>
+                                        {route.walkToStation && (
+                                            <span>Walk to station: {route.walkToStation}</span>
+                                        )}
+                                        {route.walkFromStation && (
+                                            <span>Walk from station: {route.walkFromStation}</span>
+                                        )}
+                                    </div>
+                                    {route.peakWarning && (
+                                        <div style={{ fontSize: 11, color: "#f59e0b", marginTop: 2 }}>
+                                            ⚠ {route.peakWarning}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Bus details */}
+                            {route.mode === "transit" && route.boarding && route.alighting && (
+                                <div style={{
+                                    marginTop: 8,
+                                    padding: "8px 12px",
+                                    background: "rgba(255,255,255,.02)",
+                                    border: "1px solid rgba(255,255,255,.06)",
+                                    fontSize: 12,
+                                    fontFamily: "'DM Sans',sans-serif",
+                                    color: "rgba(255,255,255,.5)",
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: 4,
+                                }}>
+                                    <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                                        <span style={{
+                                            width: 8, height: 8, borderRadius: "50%",
+                                            background: "#22c55e",
+                                            display: "inline-block", flexShrink: 0,
+                                        }} />
+                                        <span>{route.boarding}</span>
+                                        <span style={{ color: "rgba(255,255,255,.25)" }}>→</span>
+                                        <span>{route.alighting}</span>
+                                    </div>
+                                    <div style={{ display: "flex", gap: 12, flexWrap: "wrap", fontSize: 11, color: "rgba(255,255,255,.35)" }}>
+                                        {route.crowdLevel && (
+                                            <span>Crowd: <span style={{color: route.crowdLevel === "high" ? "#f97316" : route.crowdLevel === "moderate" ? "#eab308" : "#22c55e", textTransform: "uppercase", fontWeight: 600}}>{route.crowdLevel}</span></span>
+                                        )}
+                                        {route.walkToStop && (
+                                            <span>Walk to stop: {route.walkToStop}</span>
+                                        )}
+                                        {route.walkFromStop && (
+                                            <span>Walk from stop: {route.walkFromStop}</span>
+                                        )}
+                                    </div>
+                                    {route.peakWarning && (
+                                        <div style={{ fontSize: 11, color: "#f59e0b", marginTop: 2 }}>
+                                            ⚠ {route.peakWarning}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>

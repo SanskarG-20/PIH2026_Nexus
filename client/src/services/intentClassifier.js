@@ -114,25 +114,38 @@ const INTENT_DEFINITIONS = {
             "station", "bus stop", "airport", "terminal",
             "distance", "travel time", "how far", "how long",
             "suburban", "railway", "platform", "boarding",
+            "metro line", "metro station", "interchange",
+            "blue line", "red line", "yellow line", "green line", "purple line",
+            "aqua line", "magenta line", "pink line",
+            "namma metro", "mumbai metro", "delhi metro",
         ],
         promptModifier: `The user wants ROUTE/TRANSPORT analysis. You MUST return the "transportOptions" field in your JSON.
 Analyze ALL available transport modes between the locations:
 
 1. TRAIN (if applicable in metro cities like Mumbai, Delhi, Chennai, Kolkata, Bangalore, Hyderabad):
    - Nearest boarding station and destination station
-   - Train type: Local/Fast/Metro/Express
+   - Train type: Local/Fast/Express
    - Travel time, next departures (simulate realistic timings)
    - Peak hour warning (Morning 8-11 AM, Evening 6-9 PM)
 
-2. BUS:
+2. METRO (separate from train — for metro rail systems):
+   - Nearest boarding metro station and destination metro station
+   - Metro LINE NAME (e.g., Blue Line, Line 1, Purple Line)
+   - Interchange stations if line change is needed (include wait time ~3-5 min)
+   - Train frequency: every 4-8 minutes
+   - Fare estimate in INR (₹10-60 range)
+   - Peak hour crowd warning
+   - Prefer metro when distance is 5-25 km or traffic is high
+
+3. BUS:
    - Bus route number, boarding stop, drop stop
    - Frequency, crowd level, travel duration
 
-3. CAB/AUTO:
+4. CAB/AUTO:
    - Price estimate in INR (Ola/Uber range)
    - Traffic condition, comfort level
 
-4. WALK (if under 3 km)
+5. WALK (if under 3 km)
 
 Always recommend the BEST option and explain WHY.
 Use real Indian station names, bus routes, and landmarks.`,

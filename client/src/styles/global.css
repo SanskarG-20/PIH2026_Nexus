@@ -367,3 +367,36 @@ body {
 .in-s {
   animation: scale-in .6s cubic-bezier(.4, 0, .2, 1) both;
 }
+
+/* ── Live Decision Mode ──────────────────────────────────────────────────── */
+@keyframes ldm-step-in {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes ldm-cursor-blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0; }
+}
+
+@keyframes ldm-card-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ldm-best-glow {
+  0%   { box-shadow: 0 0 0 0 rgba(204,255,0,.3); }
+  50%  { box-shadow: 0 0 20px 4px rgba(204,255,0,.15); }
+  100% { box-shadow: 0 0 8px 2px rgba(204,255,0,.08); }
+}
+
+@keyframes ldm-progress {
+  from { width: 0; }
+  to   { width: 100%; }
+}
+
+@keyframes ldm-check-pop {
+  0%   { transform: scale(0); opacity: 0; }
+  60%  { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}

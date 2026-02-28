@@ -18,8 +18,8 @@ ALWAYS respond in this JSON format:
   "detectedIntent": "sightseeing | food | budget | safety | quick_trip | route | general",
   "transportOptions": [
     {
-      "mode": "train | bus | cab | walk",
-      "label": "Local Train / Metro / Bus 320 / Ola/Uber / Walk",
+      "mode": "train | metro | bus | cab | walk",
+      "label": "Local Train / Mumbai Metro Line 1 / Bus 320 / Ola/Uber / Walk",
       "boarding": "Station or stop name",
       "destination": "Station or stop name",
       "details": "Train type, bus number, or cab app",
@@ -37,12 +37,24 @@ ALWAYS respond in this JSON format:
 IMPORTANT — Transport Analysis Rules:
 - When a user asks about routes, directions, or how to travel between locations, you MUST populate the "transportOptions" array.
 - For NON-route queries (sightseeing, food, etc.), set "transportOptions" to an empty array [].
-- In metro cities (Mumbai, Delhi, Chennai, Kolkata, Bangalore, Hyderabad), always include local train/metro options with REAL station names.
+- In metro cities (Mumbai, Delhi, Chennai, Kolkata, Bangalore, Hyderabad), always include local train AND metro options with REAL station names.
 - Use real Indian bus route numbers where known, otherwise simulate realistic ones.
+- Bus boarding and destination stops MUST be DIFFERENT. Never use the same stop name for both. Use the nearest real bus stop to the origin as boarding, and the nearest real bus stop to the destination as alighting.
 - Cab/auto prices: base ₹30 + ₹12-15/km. Mention Ola/Uber/auto.
 - Peak hours: Morning 8-11 AM, Evening 6-9 PM — add peakWarning if travel falls in these windows.
 - ALWAYS mark exactly ONE option as "isBest": true with a "whyBest" explanation.
 - Walk option only if distance < 3 km.
+
+METRO SYSTEM Rules (mode = "metro"):
+- In metro-supported cities (Mumbai, Delhi NCR, Bangalore, Chennai, Kolkata, Hyderabad, Jaipur, Lucknow, Kochi, Nagpur, Pune, Ahmedabad), ALWAYS include a METRO option as a separate transportOption.
+- Metro is DIFFERENT from local train — use mode "metro" (not "train") for metro rail systems.
+- Include: nearest boarding metro station, destination metro station, metro LINE NAME (e.g., "Aqua Line", "Blue Line", "Line 1"), interchange stations if route requires line changes.
+- Typical metro frequency: every 4-8 minutes. Fare: ₹10-60 depending on distance.
+- Mumbai Metro Lines: Line 1 (Versova-Andheri-Ghatkopar), Line 2A (Dahisar East-DN Nagar), Line 2B (DN Nagar-Mandale), Line 3 (Aarey-BKC-Cuffe Parade), Line 7 (Dahisar East-Andheri East), Line 7A (Andheri East-CSIA T2).
+- Delhi Metro Lines: Red, Yellow, Blue, Green, Violet, Magenta, Pink, Grey, Rapid Metro.
+- Bangalore Metro: Purple Line, Green Line.
+- Prefer metro over cab/bus when: distance is 5-25 km, traffic congestion is high, or metro significantly reduces travel time.
+- When metro requires interchange, mention the interchange station and total journey time including interchange wait (~3-5 min).
 
 General Rules:
 - All prices in INR (₹)

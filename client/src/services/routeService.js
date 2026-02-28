@@ -6,6 +6,9 @@
  * All modes share the same distance - only ETA and cost differ.
  */
 
+import { evaluateMetro } from "./metroService.js";
+import { evaluateBus } from "./busService.js";
+
 const ORS_API_KEY = import.meta.env.VITE_ORS_API_KEY;
 const ORS_URL = "https://api.openrouteservice.org/v2/directions";
 
@@ -105,10 +108,9 @@ function haversineKm(lat1, lng1, lat2, lng2) {
  * Build mode cards from a distance value.
  */
 function buildModes(distanceKm) {
-    const modeConfigs = [
+    var modeConfigs = [
         { mode: "walk",    label: "Walk",       speedKmph: SPEED_KMPH.walk    },
         { mode: "cab",     label: "Cab / Auto", speedKmph: SPEED_KMPH.cab     },
-        { mode: "transit", label: "Transit",    speedKmph: SPEED_KMPH.transit },
     ];
 
     return modeConfigs.map(function(m) {
@@ -165,14 +167,65 @@ export async function compareRoutes(startLat, startLng, endLat, endLng) {
         if (m.mode === "cab") m.geometry = geometry;
     });
 
+    // Evaluate metro option
+    try {
+        const metro = evaluateMetro(startLat, startLng, endLat, endLng);
+        if (metro) {
+            modes.push(metro);
+        }
+    } catch (err) {
+        console.warn("[MargDarshak Route] Metro evaluation failed:", err);
+    }
+
+    // Evaluate bus option (replaces generic transit)
+    try {
+        const bus = evaluateBus(startLat, startLng, endLat, endLng, distanceKm);
+        if (bus) {
+            modes.push(bus);
+        } else {
+            // Fallback: generic transit if bus service has no data for this area
+            var transitDurSec = (distanceKm / SPEED_KMPH.transit) * 3600;
+            var transitCost = estimateCost(distanceKm, "transit");
+            modes.push({
+                mode: "transit",
+                label: "Bus / Transit",
+                distance: formatDistance(distanceKm * 1000),
+                duration: formatDuration(transitDurSec),
+                durationSec: transitDurSec,
+                cost: transitCost.label,
+                costAmount: transitCost.amount,
+                geometry: [],
+            });
+        }
+    } catch (err) {
+        console.warn("[MargDarshak Route] Bus evaluation failed:", err);
+        var transitDurSec2 = (distanceKm / SPEED_KMPH.transit) * 3600;
+        var transitCost2 = estimateCost(distanceKm, "transit");
+        modes.push({
+            mode: "transit",
+            label: "Bus / Transit",
+            distance: formatDistance(distanceKm * 1000),
+            duration: formatDuration(transitDurSec2),
+            durationSec: transitDurSec2,
+            cost: transitCost2.label,
+            costAmount: transitCost2.amount,
+            geometry: [],
+        });
+    }
+
     // Best option: lowest (costAmount + durationSec/60) score
     // Walk excluded from "best" if > 2 km
+    // Metro gets a bonus (-5 points) for 5-25 km range (preferred medium distance)
     let bestMode = null;
     let bestScore = Infinity;
 
     modes.forEach(function(m) {
         if (m.mode === "walk" && distanceKm > 2) return;
-        const score = m.costAmount + m.durationSec / 60;
+        var score = m.costAmount + m.durationSec / 60;
+        // Metro bonus: prefer metro for medium distances (5-25 km)
+        if (m.mode === "metro" && distanceKm >= 5 && distanceKm <= 25) {
+            score -= 5;
+        }
         if (score < bestScore) {
             bestScore = score;
             bestMode = m.mode;
@@ -182,7 +235,7 @@ export async function compareRoutes(startLat, startLng, endLat, endLng) {
     // Fallback: if walk > 2km was the only option evaluated, re-evaluate all
     if (!bestMode) {
         modes.forEach(function(m) {
-            const score = m.costAmount + m.durationSec / 60;
+            var score = m.costAmount + m.durationSec / 60;
             if (score < bestScore) {
                 bestScore = score;
                 bestMode = m.mode;

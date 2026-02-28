@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Y, BK, WH } from "../constants/theme";
 import { askMargDarshak } from "../services/aiService";
 import { saveAIHistory, getAIHistory } from "../services/supabaseClient";
@@ -120,7 +120,7 @@ export default function AIChat({ dbUser, onAIResponse, userLocation, weatherCont
             {/* Chat messages */}
             <div
                 style={{
-                    maxHeight: 400,
+                    maxHeight: 600,
                     overflowY: "auto",
                     marginBottom: 16,
                     border: "1px solid rgba(255,255,255,.08)",
@@ -227,19 +227,7 @@ export default function AIChat({ dbUser, onAIResponse, userLocation, weatherCont
                 ))}
 
                 {loading && (
-                    <div
-                        style={{
-                            padding: "14px 20px",
-                            borderLeft: `3px solid rgba(255,255,255,.1)`,
-                            fontFamily: "'Bebas Neue',sans-serif",
-                            fontSize: 14,
-                            color: Y,
-                            letterSpacing: 2,
-                            animation: "pulse-ring 1.5s ease infinite",
-                        }}
-                    >
-                        THINKING...
-                    </div>
+                    <LiveDecisionSteps />
                 )}
                 <div ref={chatEndRef} />
             </div>
@@ -517,25 +505,243 @@ function AIResponse({ msg }) {
 
             {/* Transport Options */}
             {data.transportOptions?.length > 0 && (
-                <div style={{ marginTop: 16 }}>
-                    <div
-                        style={{
-                            fontFamily: "'Bebas Neue',sans-serif",
-                            fontSize: 14,
-                            color: Y,
-                            letterSpacing: 2,
-                            marginBottom: 10,
-                        }}
-                    >
-                        TRANSPORT ANALYSIS
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                        {data.transportOptions.map((opt, i) => (
-                            <TransportCard key={i} opt={opt} />
-                        ))}
-                    </div>
-                </div>
+                <TransportReveal options={data.transportOptions} />
             )}
+        </div>
+    );
+}
+
+/* ── Live Decision Mode ───────────────────────── */
+
+const DECISION_STEPS = [
+    { text: "Analyzing travel query...", icon: "◈", duration: 600 },
+    { text: "Scanning transport networks...", icon: "◇", duration: 800 },
+    { text: "Evaluating train / metro schedules...", icon: "▣", duration: 700 },
+    { text: "Comparing bus routes...", icon: "▤", duration: 600 },
+    { text: "Estimating cab / auto fares...", icon: "▥", duration: 500 },
+    { text: "Checking peak hour conditions...", icon: "◉", duration: 600 },
+    { text: "Ranking options by cost + time...", icon: "◆", duration: 700 },
+    { text: "Selecting best recommendation...", icon: "✦", duration: 500 },
+];
+
+function LiveDecisionSteps() {
+    const [visibleSteps, setVisibleSteps] = useState(0);
+    const [activeStep, setActiveStep] = useState(0);
+
+    useEffect(() => {
+        let step = 0;
+        const timers = [];
+
+        const showNext = () => {
+            if (step >= DECISION_STEPS.length) return;
+            setVisibleSteps(step + 1);
+            setActiveStep(step);
+            step++;
+            timers.push(setTimeout(showNext, DECISION_STEPS[Math.min(step, DECISION_STEPS.length - 1)]?.duration || 600));
+        };
+
+        // Start after a brief pause
+        timers.push(setTimeout(showNext, 200));
+
+        return () => timers.forEach(clearTimeout);
+    }, []);
+
+    return (
+        <div
+            style={{
+                padding: "16px 20px",
+                borderLeft: `3px solid ${Y}`,
+                background: "rgba(204,255,0,.02)",
+            }}
+        >
+            {/* Header */}
+            <div style={{
+                fontFamily: "'Bebas Neue',sans-serif",
+                fontSize: 12,
+                color: Y,
+                letterSpacing: 3,
+                marginBottom: 10,
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+            }}>
+                <span style={{
+                    width: 6, height: 6, borderRadius: "50%",
+                    background: Y,
+                    boxShadow: `0 0 8px ${Y}`,
+                    animation: "ldm-cursor-blink 0.8s ease infinite",
+                    display: "inline-block",
+                }} />
+                LIVE DECISION MODE
+            </div>
+
+            {/* Progress bar */}
+            <div style={{
+                height: 2,
+                background: "rgba(255,255,255,.06)",
+                marginBottom: 12,
+                overflow: "hidden",
+            }}>
+                <div style={{
+                    height: "100%",
+                    background: `linear-gradient(90deg, ${Y}, rgba(204,255,0,.3))`,
+                    width: `${(visibleSteps / DECISION_STEPS.length) * 100}%`,
+                    transition: "width 0.4s ease-out",
+                }} />
+            </div>
+
+            {/* Steps */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                {DECISION_STEPS.slice(0, visibleSteps).map((s, i) => {
+                    const isActive = i === activeStep && visibleSteps < DECISION_STEPS.length;
+                    const isDone = i < activeStep || visibleSteps >= DECISION_STEPS.length;
+                    return (
+                        <div
+                            key={i}
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 8,
+                                animation: "ldm-step-in 0.3s ease both",
+                            }}
+                        >
+                            {/* Step icon */}
+                            <span style={{
+                                fontFamily: "'DM Sans',sans-serif",
+                                fontSize: 10,
+                                width: 16,
+                                textAlign: "center",
+                                color: isDone ? "#22c55e" : isActive ? Y : "rgba(255,255,255,.3)",
+                                animation: isDone ? "ldm-check-pop 0.3s ease both" : "none",
+                            }}>
+                                {isDone ? "✓" : s.icon}
+                            </span>
+
+                            {/* Step text */}
+                            <span style={{
+                                fontFamily: "'DM Sans',sans-serif",
+                                fontSize: 12,
+                                color: isDone
+                                    ? "rgba(255,255,255,.3)"
+                                    : isActive
+                                    ? "rgba(255,255,255,.8)"
+                                    : "rgba(255,255,255,.5)",
+                                transition: "color 0.3s",
+                            }}>
+                                {s.text}
+                            </span>
+
+                            {/* Blinking cursor on active step */}
+                            {isActive && (
+                                <span style={{
+                                    display: "inline-block",
+                                    width: 6, height: 12,
+                                    background: Y,
+                                    animation: "ldm-cursor-blink 0.6s step-end infinite",
+                                    marginLeft: -4,
+                                }} />
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
+/* ── Transport Reveal (staggered + glow) ──────── */
+
+function TransportReveal({ options }) {
+    const [revealCount, setRevealCount] = useState(0);
+    const [glowBest, setGlowBest] = useState(false);
+
+    useEffect(() => {
+        let count = 0;
+        const total = options.length;
+        const timers = [];
+        setRevealCount(0);
+        setGlowBest(false);
+
+        const revealNext = () => {
+            count++;
+            setRevealCount(count);
+            if (count < total) {
+                timers.push(setTimeout(revealNext, 250));
+            } else {
+                // After all cards revealed, trigger glow on best
+                timers.push(setTimeout(() => setGlowBest(true), 400));
+            }
+        };
+
+        timers.push(setTimeout(revealNext, 150));
+
+        return () => timers.forEach(clearTimeout);
+    }, [options.length]);
+
+    return (
+        <div style={{ marginTop: 16 }}>
+            <div
+                style={{
+                    fontFamily: "'Bebas Neue',sans-serif",
+                    fontSize: 14,
+                    color: Y,
+                    letterSpacing: 2,
+                    marginBottom: 10,
+                }}
+            >
+                TRANSPORT ANALYSIS
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {options.map((opt, i) => {
+                    if (i >= revealCount) return null;
+                    const isGlowing = glowBest && opt.isBest;
+                    return (
+                        <div
+                            key={i}
+                            style={{
+                                animation: `ldm-card-in 0.35s ease both`,
+                                ...(isGlowing ? {
+                                    animation: `ldm-card-in 0.35s ease both, ldm-best-glow 1.5s ease forwards`,
+                                } : {}),
+                            }}
+                        >
+                            <TransportCard opt={opt} glowing={isGlowing} />
+                        </div>
+                    );
+                })}
+            </div>
+
+            {/* Decision summary after all revealed */}
+            {glowBest && (() => {
+                const best = options.find((o) => o.isBest);
+                if (!best) return null;
+                return (
+                    <div style={{
+                        marginTop: 10,
+                        padding: "8px 14px",
+                        background: "rgba(204,255,0,.04)",
+                        borderLeft: `3px solid ${Y}`,
+                        animation: "ldm-step-in 0.4s ease both",
+                    }}>
+                        <span style={{
+                            fontFamily: "'Bebas Neue',sans-serif",
+                            fontSize: 11,
+                            letterSpacing: 2,
+                            color: Y,
+                        }}>
+                            AI RECOMMENDATION
+                        </span>
+                        <span style={{
+                            fontFamily: "'DM Sans',sans-serif",
+                            fontSize: 12,
+                            color: "rgba(255,255,255,.6)",
+                            marginLeft: 8,
+                        }}>
+                            {best.whyBest || `${best.label || best.mode} is the best option`}
+                        </span>
+                    </div>
+                );
+            })()}
         </div>
     );
 }
@@ -614,6 +820,13 @@ const TRANSPORT_MODE_ICON = {
             <path d="M9 12l1.5-4.5L14 9l2 4" /><path d="M7 20l3-4 2 1 1 3" /><path d="M15 20l-1-5" />
         </svg>
     ),
+    metro: (c) => (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 2L4 7v10l8 5 8-5V7l-8-5z" />
+            <path d="M12 2v20" /><path d="M4 7l8 5 8-5" />
+            <circle cx="12" cy="12" r="2.5" fill={c} stroke="none" />
+        </svg>
+    ),
 };
 
 const CROWD_COLORS = {
@@ -623,7 +836,7 @@ const CROWD_COLORS = {
     packed: "#ef4444",
 };
 
-function TransportCard({ opt }) {
+function TransportCard({ opt, glowing }) {
     const isBest = opt.isBest;
     const modeColor = isBest ? Y : "rgba(255,255,255,.6)";
     const IconFn = TRANSPORT_MODE_ICON[opt.mode] || TRANSPORT_MODE_ICON.cab;
@@ -635,6 +848,10 @@ function TransportCard({ opt }) {
                 border: `1px solid ${isBest ? Y : "rgba(255,255,255,.08)"}`,
                 background: isBest ? "rgba(204,255,0,.05)" : "rgba(255,255,255,.02)",
                 position: "relative",
+                transition: "box-shadow 0.6s ease",
+                ...(glowing ? {
+                    boxShadow: `0 0 16px 3px rgba(204,255,0,.12), inset 0 0 20px rgba(204,255,0,.03)`,
+                } : {}),
             }}
         >
             {/* Best badge */}
