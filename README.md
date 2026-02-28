@@ -21,7 +21,6 @@
 12. [Screenshots](#12-screenshots)
 13. [Future Roadmap](#13-future-roadmap)
 14. [Hackathon Impact](#14-hackathon-impact)
-15. [License](#15-license)
 
 ---
 
@@ -469,30 +468,6 @@ MargDarshak introduces three novel concepts to the Indian travel assistant space
 - **Problem solved**: Poor, dangerous, or expensive transport choices made from lack of information
 - **Reach**: Mumbai → Delhi → Bangalore → all major metros with minimal dataset extensions
 - **Equity**: Free-tier APIs mean no paywall; accessible on any modern smartphone browser
-
----
-
-## 15. License
-
-```
-MIT License
-
-Copyright (c) 2026 MargDarshak
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-```
 
 ---
 
