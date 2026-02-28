@@ -1,0 +1,342 @@
+import { useState } from "react";
+import { Y, BK, WH } from "../constants/theme";
+import { compareRoutes } from "../services/routeService";
+
+/** Minimal SVG icons for each travel mode */
+function ModeIcon({ mode, size = 20, color = WH }) {
+    if (mode === "walk") return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="4" r="2" fill={color} stroke="none" />
+            <path d="M9 12l1.5-4.5L14 9l2 4" />
+            <path d="M7 20l3-4 2 1 1 3" />
+            <path d="M15 20l-1-5" />
+        </svg>
+    );
+    if (mode === "cab") return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 17H3v-3l2.5-6h11L19 14v3h-2" />
+            <circle cx="7.5" cy="17.5" r="1.5" />
+            <circle cx="16.5" cy="17.5" r="1.5" />
+            <path d="M5 11h14" />
+        </svg>
+    );
+    if (mode === "transit") return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="18" height="13" rx="2" />
+            <path d="M3 9h18" />
+            <path d="M8 19l-1 2" />
+            <path d="M16 19l1 2" />
+            <path d="M7 19h10" />
+        </svg>
+    );
+    return null;
+}
+
+/**
+ * RoutePanel — Compares Walk vs Cab vs Transit between user location and a destination.
+ *
+ * Props:
+ *  - userLocation: { lat, lng }
+ *  - markers: [{ name, lat, lng }] — AI recommended places
+ *  - onRouteCalculated: (routeData) => void — passes route geometry to map
+ */
+export default function RoutePanel({ userLocation, markers = [], onRouteCalculated }) {
+    const [selectedPlace, setSelectedPlace] = useState(null);
+    const [routes, setRoutes] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [isFallback, setIsFallback] = useState(false);
+
+    const validMarkers = markers.filter((m) => m.lat && m.lng);
+
+    const handleCalculate = async (marker) => {
+        if (!userLocation?.lat || !userLocation?.lng) return;
+
+        setSelectedPlace(marker.name);
+        setLoading(true);
+        setError(null);
+        setRoutes(null);
+        setIsFallback(false);
+
+        const result = await compareRoutes(
+            userLocation.lat,
+            userLocation.lng,
+            marker.lat,
+            marker.lng
+        );
+
+        setLoading(false);
+
+        if (result.error) {
+            setError(result.message);
+        } else {
+            setRoutes(result.modes);
+            setIsFallback(!!result.usingFallback);
+            // Pass the best route geometry to map
+            const bestRoute = result.modes.find((m) => m.isBest);
+            const routeWithGeometry = result.modes.find((m) => m.geometry?.length > 0);
+            onRouteCalculated?.({
+                geometry: bestRoute?.geometry?.length > 0
+                    ? bestRoute.geometry
+                    : routeWithGeometry?.geometry || [],
+                destination: marker,
+            });
+        }
+    };
+
+    if (validMarkers.length === 0) return null;
+
+    return (
+        <div style={{ marginTop: 32 }}>
+            {/* Header */}
+            <div style={headerStyle}>
+                <Dot color={routes ? "#22c55e" : Y} pulse={loading} />
+                ROUTE INTELLIGENCE
+            </div>
+
+            {/* Destination selector */}
+            <div style={{ marginBottom: 16 }}>
+                <div style={sublabelStyle}>SELECT DESTINATION</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                    {validMarkers.map((marker, i) => (
+                        <button
+                            key={`${marker.name}-${i}`}
+                            onClick={() => handleCalculate(marker)}
+                            disabled={loading}
+                            data-hover
+                            style={{
+                                padding: "8px 16px",
+                                fontFamily: "'DM Sans',sans-serif",
+                                fontSize: 13,
+                                color: selectedPlace === marker.name ? BK : "rgba(255,255,255,.7)",
+                                background:
+                                    selectedPlace === marker.name
+                                        ? Y
+                                        : "rgba(255,255,255,.05)",
+                                border: `1px solid ${
+                                    selectedPlace === marker.name
+                                        ? Y
+                                        : "rgba(255,255,255,.12)"
+                                }`,
+                                cursor: loading ? "wait" : "pointer",
+                                transition: "all .15s",
+                            }}
+                        >
+                            {marker.name}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Loading */}
+            {loading && (
+                <div style={loadingStyle}>
+                    Calculating routes...
+                </div>
+            )}
+
+            {/* Error */}
+            {error && (
+                <div style={errorStyle}>{error}</div>
+            )}
+
+            {/* Fallback notice */}
+            {routes && isFallback && (
+                <div style={{
+                    fontFamily: "'DM Sans',sans-serif",
+                    fontSize: 12,
+                    color: "rgba(255,255,255,.35)",
+                    marginBottom: 12,
+                    padding: "8px 12px",
+                    border: "1px solid rgba(255,255,255,.06)",
+                    background: "rgba(255,255,255,.02)",
+                    letterSpacing: 0.3,
+                }}>
+                    Estimates based on straight-line distance (ORS road data unavailable)
+                </div>
+            )}
+
+            {/* Route comparison cards */}
+            {routes && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {routes.map((route) => (
+                        <div
+                            key={route.mode}
+                            style={{
+                                padding: "16px 20px",
+                                border: `1px solid ${
+                                    route.isBest ? Y : "rgba(255,255,255,.08)"
+                                }`,
+                                background: route.isBest
+                                    ? "rgba(204,255,0,.06)"
+                                    : "rgba(255,255,255,.02)",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                flexWrap: "wrap",
+                                gap: 12,
+                                position: "relative",
+                            }}
+                        >
+                            {/* Best badge */}
+                            {route.isBest && (
+                                <div
+                                    style={{
+                                        position: "absolute",
+                                        top: -1,
+                                        right: 12,
+                                        background: Y,
+                                        color: BK,
+                                        fontFamily: "'Bebas Neue',sans-serif",
+                                        fontSize: 10,
+                                        letterSpacing: 2,
+                                        padding: "2px 10px",
+                                    }}
+                                >
+                                    BEST
+                                </div>
+                            )}
+
+                            {/* Mode label */}
+                            <div style={{ minWidth: 140, display: "flex", alignItems: "center", gap: 10 }}>
+                                <div style={{
+                                    width: 36,
+                                    height: 36,
+                                    borderRadius: 6,
+                                    background: route.isBest ? Y : "rgba(255,255,255,.07)",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    flexShrink: 0,
+                                }}>
+                                    <ModeIcon
+                                        mode={route.mode}
+                                        size={18}
+                                        color={route.isBest ? BK : "rgba(255,255,255,.6)"}
+                                    />
+                                </div>
+                                <div
+                                    style={{
+                                        fontFamily: "'DM Sans',sans-serif",
+                                        fontSize: 15,
+                                        fontWeight: 600,
+                                        color: route.isBest ? WH : "rgba(255,255,255,.7)",
+                                        letterSpacing: 0.2,
+                                    }}
+                                >
+                                    {route.label}
+                                </div>
+                            </div>
+
+                            {/* Stats */}
+                            <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
+                                <StatItem
+                                    label="DISTANCE"
+                                    value={route.distance}
+                                    highlight={false}
+                                />
+                                <StatItem
+                                    label="ETA"
+                                    value={route.duration}
+                                    highlight={route.isBest}
+                                />
+                                <StatItem
+                                    label="COST"
+                                    value={route.cost}
+                                    highlight={route.isBest}
+                                    color={route.costAmount === 0 ? "#22c55e" : Y}
+                                />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
+/* ── Sub-components ─────────────────────────── */
+
+function Dot({ color, pulse }) {
+    return (
+        <span
+            style={{
+                width: 8,
+                height: 8,
+                borderRadius: "50%",
+                background: color,
+                display: "inline-block",
+                boxShadow: `0 0 8px ${color}`,
+                animation: pulse
+                    ? "pulse-ring 1s ease infinite"
+                    : "pulse-ring 2s ease infinite",
+            }}
+        />
+    );
+}
+
+function StatItem({ label, value, highlight, color }) {
+    return (
+        <div>
+            <div
+                style={{
+                    fontFamily: "'DM Sans',sans-serif",
+                    fontSize: 10,
+                    color: "rgba(255,255,255,.3)",
+                    letterSpacing: 1,
+                    marginBottom: 2,
+                }}
+            >
+                {label}
+            </div>
+            <div
+                style={{
+                    fontFamily: "'Bebas Neue',sans-serif",
+                    fontSize: 18,
+                    color: color || (highlight ? Y : "rgba(255,255,255,.6)"),
+                    letterSpacing: 1,
+                }}
+            >
+                {value}
+            </div>
+        </div>
+    );
+}
+
+/* ── Styles ──────────────────────────────────── */
+
+const headerStyle = {
+    fontFamily: "'Bebas Neue',sans-serif",
+    fontSize: 22,
+    color: Y,
+    letterSpacing: 2,
+    marginBottom: 16,
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+};
+
+const sublabelStyle = {
+    fontFamily: "'DM Sans',sans-serif",
+    fontSize: 11,
+    color: "rgba(255,255,255,.35)",
+    letterSpacing: 2,
+    marginBottom: 8,
+};
+
+const loadingStyle = {
+    fontFamily: "'DM Sans',sans-serif",
+    fontSize: 13,
+    color: Y,
+    padding: "12px 0",
+    animation: "pulse-ring 1.5s ease infinite",
+};
+
+const errorStyle = {
+    fontFamily: "'DM Sans',sans-serif",
+    fontSize: 13,
+    color: "#ef4444",
+    padding: "12px 16px",
+    border: "1px solid rgba(239,68,68,.2)",
+    background: "rgba(239,68,68,.05)",
+};

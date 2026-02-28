@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
 import L from "leaflet";
 import { Y, BK, WH } from "../constants/theme";
 
@@ -51,10 +51,17 @@ function RecenterMap({ lat, lng }) {
 }
 
 /** Fit map bounds when markers change */
-function FitMarkers({ markers, userLocation }) {
+function FitMarkers({ markers, userLocation, routeGeometry }) {
     const map = useMap();
 
     useEffect(() => {
+        // If route geometry exists, fit to route bounds
+        if (routeGeometry && routeGeometry.length > 1) {
+            const bounds = L.latLngBounds(routeGeometry);
+            map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15, duration: 1 });
+            return;
+        }
+
         if (!markers || markers.length === 0) return;
 
         const points = markers
@@ -69,7 +76,7 @@ function FitMarkers({ markers, userLocation }) {
             const bounds = L.latLngBounds(points);
             map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14, duration: 1 });
         }
-    }, [markers, userLocation, map]);
+    }, [markers, userLocation, routeGeometry, map]);
 
     return null;
 }
@@ -80,9 +87,10 @@ function FitMarkers({ markers, userLocation }) {
  * Props:
  *  - userLocation: { lat, lng }
  *  - markers: [{ name, lat, lng, description? }]
+ *  - routeGeometry: [[lat, lng], ...] — polyline from route service
  *  - onMapReady: () => void
  */
-export default function MapView({ userLocation, markers = [], onMapReady }) {
+export default function MapView({ userLocation, markers = [], routeGeometry = [], onMapReady }) {
     const center = userLocation || { lat: 28.6139, lng: 77.209 };
 
     return (
@@ -139,8 +147,21 @@ export default function MapView({ userLocation, markers = [], onMapReady }) {
                     {/* Recenter on user location */}
                     <RecenterMap lat={center.lat} lng={center.lng} />
 
-                    {/* Fit bounds when AI markers arrive */}
-                    <FitMarkers markers={markers} userLocation={userLocation} />
+                    {/* Fit bounds when AI markers or route arrive */}
+                    <FitMarkers markers={markers} userLocation={userLocation} routeGeometry={routeGeometry} />
+
+                    {/* Route polyline */}
+                    {routeGeometry.length > 1 && (
+                        <Polyline
+                            positions={routeGeometry}
+                            pathOptions={{
+                                color: Y,
+                                weight: 3,
+                                opacity: 0.8,
+                                dashArray: "8, 6",
+                            }}
+                        />
+                    )}
 
                     {/* User location marker */}
                     {userLocation && (

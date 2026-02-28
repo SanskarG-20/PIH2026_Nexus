@@ -2,8 +2,9 @@ import { useState, useRef, useEffect } from "react";
 import { Y, BK, WH } from "../constants/theme";
 import { askMargDarshak } from "../services/aiService";
 import { saveAIHistory, getAIHistory } from "../services/supabaseClient";
+import { classifyIntent, buildIntentPrompt } from "../services/intentClassifier";
 
-export default function AIChat({ dbUser, onAIResponse, userLocation }) {
+export default function AIChat({ dbUser, onAIResponse, userLocation, weatherContext }) {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
@@ -49,10 +50,19 @@ export default function AIChat({ dbUser, onAIResponse, userLocation }) {
 
         const userMsg = input.trim();
         setInput("");
-        setMessages((prev) => [...prev, { role: "user", content: userMsg }]);
+
+        // Classify intent from the user message
+        const intents = classifyIntent(userMsg);
+        const primaryIntent = intents.length > 0 && intents[0].confidence >= 0.2 ? intents[0] : null;
+        const intentPrompt = buildIntentPrompt(userMsg);
+
+        setMessages((prev) => [
+            ...prev,
+            { role: "user", content: userMsg, detectedIntent: primaryIntent },
+        ]);
         setLoading(true);
 
-        const result = await askMargDarshak(userMsg, messages, userLocation);
+        const result = await askMargDarshak(userMsg, messages, userLocation, weatherContext, intentPrompt);
         const aiContent = result.error
             ? result.summary
             : JSON.stringify(result);
@@ -132,6 +142,38 @@ export default function AIChat({ dbUser, onAIResponse, userLocation }) {
                         <span style={{ fontSize: 12, opacity: 0.6 }}>
                             Try: "I'm in Jaipur with ₹2000 budget, suggest a full day plan"
                         </span>
+                        <div style={{
+                            display: "flex",
+                            justifyContent: "center",
+                            gap: 6,
+                            marginTop: 12,
+                            flexWrap: "wrap",
+                        }}>
+                            {[
+                                { label: "Sightseeing", color: "#60a5fa" },
+                                { label: "Food", color: "#f97316" },
+                                { label: "Budget", color: "#22c55e" },
+                                { label: "Safety", color: "#ef4444" },
+                                { label: "Quick Trip", color: "#a78bfa" },
+                                { label: "Route", color: "#06b6d4" },
+                            ].map((t) => (
+                                <span
+                                    key={t.label}
+                                    style={{
+                                        fontSize: 9,
+                                        fontWeight: 600,
+                                        letterSpacing: 1,
+                                        textTransform: "uppercase",
+                                        padding: "2px 8px",
+                                        color: t.color,
+                                        background: t.color + "12",
+                                        border: `1px solid ${t.color}25`,
+                                    }}
+                                >
+                                    {t.label}
+                                </span>
+                            ))}
+                        </div>
                     </div>
                 )}
 
@@ -147,15 +189,26 @@ export default function AIChat({ dbUser, onAIResponse, userLocation }) {
                             >
                                 <div
                                     style={{
-                                        fontFamily: "'DM Sans',sans-serif",
-                                        fontSize: 11,
-                                        color: Y,
-                                        letterSpacing: 2,
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 8,
                                         marginBottom: 6,
-                                        textTransform: "uppercase",
                                     }}
                                 >
-                                    YOU
+                                    <div
+                                        style={{
+                                            fontFamily: "'DM Sans',sans-serif",
+                                            fontSize: 11,
+                                            color: Y,
+                                            letterSpacing: 2,
+                                            textTransform: "uppercase",
+                                        }}
+                                    >
+                                        YOU
+                                    </div>
+                                    {msg.detectedIntent && (
+                                        <IntentBadge intent={msg.detectedIntent} />
+                                    )}
                                 </div>
                                 <div
                                     style={{
@@ -267,6 +320,26 @@ function AIResponse({ msg }) {
                 background: "rgba(255,255,255,.01)",
             }}
         >
+            {/* Detected intent label */}
+            {data.detectedIntent && data.detectedIntent !== "general" && (
+                <div
+                    style={{
+                        display: "inline-block",
+                        padding: "3px 10px",
+                        marginBottom: 12,
+                        fontFamily: "'DM Sans',sans-serif",
+                        fontSize: 10,
+                        fontWeight: 600,
+                        letterSpacing: 1.5,
+                        textTransform: "uppercase",
+                        color: BK,
+                        background: Y,
+                    }}
+                >
+                    {data.detectedIntent.replace("_", " ")} MODE
+                </div>
+            )}
+
             {/* Summary */}
             {data.summary && (
                 <div
@@ -441,6 +514,258 @@ function AIResponse({ msg }) {
                     ))}
                 </div>
             )}
+
+            {/* Transport Options */}
+            {data.transportOptions?.length > 0 && (
+                <div style={{ marginTop: 16 }}>
+                    <div
+                        style={{
+                            fontFamily: "'Bebas Neue',sans-serif",
+                            fontSize: 14,
+                            color: Y,
+                            letterSpacing: 2,
+                            marginBottom: 10,
+                        }}
+                    >
+                        TRANSPORT ANALYSIS
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                        {data.transportOptions.map((opt, i) => (
+                            <TransportCard key={i} opt={opt} />
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
+/* ── Intent Badge ────────────────────────────── */
+
+const INTENT_COLORS = {
+    sightseeing: "#60a5fa",
+    food: "#f97316",
+    budget: "#22c55e",
+    safety: "#ef4444",
+    quick_trip: "#a78bfa",
+    route: "#06b6d4",
+};
+
+const INTENT_ICONS = {
+    sightseeing: "\u{1F3DB}",  // 🏛
+    food: "\u{1F37D}",         // 🍽
+    budget: "\u{1F4B0}",       // 💰
+    safety: "\u{1F6E1}",       // 🛡
+    quick_trip: "\u26A1",      // ⚡
+    route: "\u{1F6A6}",        // 🚦
+};
+
+function IntentBadge({ intent }) {
+    const color = INTENT_COLORS[intent.type] || Y;
+    return (
+        <span
+            style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 4,
+                padding: "2px 8px",
+                fontFamily: "'DM Sans',sans-serif",
+                fontSize: 10,
+                fontWeight: 600,
+                letterSpacing: 1,
+                textTransform: "uppercase",
+                color: color,
+                background: color + "15",
+                border: `1px solid ${color}30`,
+                borderRadius: 2,
+            }}
+        >
+            {INTENT_ICONS[intent.type] || ""} {intent.label}
+        </span>
+    );
+}
+
+/* -- Transport mode icons (inline SVG) -- */
+const TRANSPORT_MODE_ICON = {
+    train: (c) => (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="4" y="3" width="16" height="14" rx="2" />
+            <path d="M4 10h16" /><path d="M9 21l-2-4" /><path d="M15 21l2-4" />
+            <circle cx="9" cy="14" r="1" fill={c} /><circle cx="15" cy="14" r="1" fill={c} />
+        </svg>
+    ),
+    bus: (c) => (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="18" height="14" rx="2" />
+            <path d="M3 9h18" /><path d="M7 20l-1 1" /><path d="M17 20l1 1" />
+            <path d="M7 20h10" />
+        </svg>
+    ),
+    cab: (c) => (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 17H3v-3l2.5-6h11L19 14v3h-2" />
+            <circle cx="7.5" cy="17.5" r="1.5" /><circle cx="16.5" cy="17.5" r="1.5" />
+            <path d="M5 11h14" />
+        </svg>
+    ),
+    walk: (c) => (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="4" r="2" fill={c} stroke="none" />
+            <path d="M9 12l1.5-4.5L14 9l2 4" /><path d="M7 20l3-4 2 1 1 3" /><path d="M15 20l-1-5" />
+        </svg>
+    ),
+};
+
+const CROWD_COLORS = {
+    low: "#22c55e",
+    moderate: "#eab308",
+    high: "#f97316",
+    packed: "#ef4444",
+};
+
+function TransportCard({ opt }) {
+    const isBest = opt.isBest;
+    const modeColor = isBest ? Y : "rgba(255,255,255,.6)";
+    const IconFn = TRANSPORT_MODE_ICON[opt.mode] || TRANSPORT_MODE_ICON.cab;
+
+    return (
+        <div
+            style={{
+                padding: "14px 16px",
+                border: `1px solid ${isBest ? Y : "rgba(255,255,255,.08)"}`,
+                background: isBest ? "rgba(204,255,0,.05)" : "rgba(255,255,255,.02)",
+                position: "relative",
+            }}
+        >
+            {/* Best badge */}
+            {isBest && (
+                <div style={{
+                    position: "absolute", top: -1, right: 12,
+                    background: Y, color: BK,
+                    fontFamily: "'Bebas Neue',sans-serif",
+                    fontSize: 9, letterSpacing: 2,
+                    padding: "2px 8px",
+                }}>
+                    BEST
+                </div>
+            )}
+
+            {/* Mode header */}
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <div style={{
+                    width: 30, height: 30, borderRadius: 4,
+                    background: isBest ? Y : "rgba(255,255,255,.06)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    flexShrink: 0,
+                }}>
+                    {IconFn(isBest ? BK : "rgba(255,255,255,.5)")}
+                </div>
+                <div style={{
+                    fontFamily: "'DM Sans',sans-serif",
+                    fontSize: 14, fontWeight: 600,
+                    color: isBest ? WH : "rgba(255,255,255,.7)",
+                }}>
+                    {opt.label || opt.mode}
+                </div>
+            </div>
+
+            {/* Route info */}
+            {(opt.boarding || opt.destination) && (
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6, flexWrap: "wrap" }}>
+                    {opt.boarding && (
+                        <span style={{
+                            fontFamily: "'DM Sans',sans-serif", fontSize: 12,
+                            color: "rgba(255,255,255,.55)",
+                            padding: "2px 8px",
+                            background: "rgba(255,255,255,.04)",
+                            border: "1px solid rgba(255,255,255,.08)",
+                        }}>
+                            {opt.boarding}
+                        </span>
+                    )}
+                    {opt.boarding && opt.destination && (
+                        <span style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 11, color: Y, letterSpacing: 1 }}>→</span>
+                    )}
+                    {opt.destination && (
+                        <span style={{
+                            fontFamily: "'DM Sans',sans-serif", fontSize: 12,
+                            color: "rgba(255,255,255,.55)",
+                            padding: "2px 8px",
+                            background: "rgba(255,255,255,.04)",
+                            border: "1px solid rgba(255,255,255,.08)",
+                        }}>
+                            {opt.destination}
+                        </span>
+                    )}
+                </div>
+            )}
+
+            {/* Stats row */}
+            <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: opt.peakWarning || opt.whyBest ? 8 : 0 }}>
+                {opt.duration && (
+                    <TransportStat label="ETA" value={opt.duration} highlight={isBest} />
+                )}
+                {opt.cost && (
+                    <TransportStat label="COST" value={opt.cost} color={opt.cost === "Free" || opt.cost === "₹0" ? "#22c55e" : null} highlight={isBest} />
+                )}
+                {opt.frequency && (
+                    <TransportStat label="FREQ" value={opt.frequency} />
+                )}
+                {opt.crowdLevel && (
+                    <TransportStat label="CROWD" value={opt.crowdLevel.toUpperCase()} color={CROWD_COLORS[opt.crowdLevel] || null} />
+                )}
+                {opt.details && (
+                    <TransportStat label="TYPE" value={opt.details} />
+                )}
+            </div>
+
+            {/* Peak warning */}
+            {opt.peakWarning && (
+                <div style={{
+                    fontFamily: "'DM Sans',sans-serif",
+                    fontSize: 11, color: "#f97316",
+                    padding: "4px 8px",
+                    background: "rgba(249,115,22,.06)",
+                    border: "1px solid rgba(249,115,22,.12)",
+                    marginBottom: opt.whyBest ? 6 : 0,
+                }}>
+                    ⚠ {opt.peakWarning}
+                </div>
+            )}
+
+            {/* Why best */}
+            {isBest && opt.whyBest && (
+                <div style={{
+                    fontFamily: "'DM Sans',sans-serif",
+                    fontSize: 11, color: Y,
+                    opacity: 0.8,
+                    fontStyle: "italic",
+                }}>
+                    {opt.whyBest}
+                </div>
+            )}
+        </div>
+    );
+}
+
+function TransportStat({ label, value, highlight, color }) {
+    return (
+        <div>
+            <div style={{
+                fontFamily: "'DM Sans',sans-serif",
+                fontSize: 9, color: "rgba(255,255,255,.3)",
+                letterSpacing: 1, marginBottom: 1,
+            }}>
+                {label}
+            </div>
+            <div style={{
+                fontFamily: "'Bebas Neue',sans-serif",
+                fontSize: 15,
+                color: color || (highlight ? Y : "rgba(255,255,255,.55)"),
+                letterSpacing: 0.5,
+            }}>
+                {value}
+            </div>
         </div>
     );
 }

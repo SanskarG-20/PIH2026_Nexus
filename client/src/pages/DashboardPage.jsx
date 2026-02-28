@@ -4,11 +4,14 @@ import { Y, BK, WH } from "../constants/theme";
 import useUserSync from "../hooks/useUserSync";
 import useGeolocation from "../hooks/useGeolocation";
 import { saveUserLocation } from "../services/supabaseClient";
+import { fetchWeatherAndAQI, buildWeatherContext } from "../services/weatherService";
 import Cursor from "../components/Cursor";
 import LocationBar from "../components/LocationBar";
+import WeatherBadge from "../components/WeatherBadge";
 import IntentInput from "../components/IntentInput";
 import AIChat from "../components/AIChat";
 import MapView from "../components/MapView";
+import RoutePanel from "../components/RoutePanel";
 
 export default function DashboardPage() {
     const { user, isLoaded } = useUser();
@@ -17,6 +20,10 @@ export default function DashboardPage() {
     const [aiActive, setAiActive] = useState(false);
     const [mapActive, setMapActive] = useState(false);
     const [mapMarkers, setMapMarkers] = useState([]);
+    const [weather, setWeather] = useState(null);
+    const [weatherLoading, setWeatherLoading] = useState(false);
+    const [routeGeometry, setRouteGeometry] = useState([]);
+    const [routeActive, setRouteActive] = useState(false);
 
     // Save location to Supabase whenever it changes
     useEffect(() => {
@@ -30,11 +37,26 @@ export default function DashboardPage() {
         }
     }, [dbUser?.id, userLocation?.lat, userLocation?.lng, city]);
 
+    // Fetch weather + AQI when location is available
+    useEffect(() => {
+        if (!userLocation?.lat || !userLocation?.lng) return;
+
+        setWeatherLoading(true);
+        fetchWeatherAndAQI(userLocation.lat, userLocation.lng)
+            .then((data) => {
+                if (data) setWeather(data);
+            })
+            .finally(() => setWeatherLoading(false));
+    }, [userLocation?.lat, userLocation?.lng]);
+
     // Build location context object for AI
     const aiLocationContext = useMemo(() => {
         if (!userLocation) return null;
         return { lat: userLocation.lat, lng: userLocation.lng, city: city || null };
     }, [userLocation, city]);
+
+    // Build weather context string for AI
+    const weatherCtx = useMemo(() => buildWeatherContext(weather), [weather]);
 
     const handleAIResponse = useCallback((parsedResult) => {
         setAiActive(true);
@@ -53,6 +75,13 @@ export default function DashboardPage() {
                 setMapMarkers(newMarkers);
             }
         }
+    }, []);
+
+    const handleRouteCalculated = useCallback((routeData) => {
+        if (routeData?.geometry?.length > 0) {
+            setRouteGeometry(routeData.geometry);
+        }
+        setRouteActive(true);
     }, []);
 
     if (!isLoaded) {
@@ -93,37 +122,47 @@ export default function DashboardPage() {
         >
             <Cursor />
 
-            {/* Grid background */}
-            <svg
-                style={{
-                    position: "fixed",
-                    inset: 0,
-                    width: "100%",
-                    height: "100%",
-                    opacity: 0.04,
-                    pointerEvents: "none",
-                    zIndex: 0,
-                }}
-            >
-                <defs>
-                    <pattern
-                        id="dash-grid"
-                        x="0"
-                        y="0"
-                        width="60"
-                        height="60"
-                        patternUnits="userSpaceOnUse"
-                    >
-                        <path
-                            d="M 60 0 L 0 0 0 60"
-                            fill="none"
-                            stroke={Y}
-                            strokeWidth="0.5"
-                        />
-                    </pattern>
-                </defs>
-                <rect width="100%" height="100%" fill="url(#dash-grid)" />
-            </svg>
+            {/* ── Animated background ── */}
+            <div className="dark-page-bg">
+                <div className="dark-page-bg__gradient" />
+                <div className="dark-page-bg__noise" />
+                <div className="dark-page-bg__orb dark-page-bg__orb--1" />
+                <div className="dark-page-bg__orb dark-page-bg__orb--2" />
+                <div className="dark-page-bg__orb dark-page-bg__orb--3" />
+                <div className="dark-page-bg__scan" />
+
+                {/* Grid overlay */}
+                <svg
+                    style={{
+                        position: "absolute",
+                        inset: 0,
+                        width: "100%",
+                        height: "100%",
+                        opacity: 0.06,
+                    }}
+                >
+                    <defs>
+                        <pattern
+                            id="dash-grid"
+                            x="0"
+                            y="0"
+                            width="60"
+                            height="60"
+                            patternUnits="userSpaceOnUse"
+                        >
+                            <path
+                                d="M 60 0 L 0 0 0 60"
+                                fill="none"
+                                stroke={Y}
+                                strokeWidth="0.5"
+                            />
+                        </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#dash-grid)" />
+                </svg>
+
+                <div className="dark-page-bg__vignette" />
+            </div>
 
             {/* Watermark */}
             <div
@@ -133,7 +172,7 @@ export default function DashboardPage() {
                     right: -20,
                     fontFamily: "'Bebas Neue',sans-serif",
                     fontSize: "clamp(120px, 20vw, 260px)",
-                    color: "rgba(204,255,0,.03)",
+                    color: "rgba(204,255,0,.04)",
                     letterSpacing: -5,
                     userSelect: "none",
                     pointerEvents: "none",
@@ -284,6 +323,13 @@ export default function DashboardPage() {
                     onManualCity={setManualCity}
                 />
 
+                {/* Weather Badge */}
+                <WeatherBadge
+                    weather={weather}
+                    loading={weatherLoading}
+                    city={city}
+                />
+
                 {/* Intent Input */}
                 <IntentInput dbUser={dbUser} />
 
@@ -292,13 +338,22 @@ export default function DashboardPage() {
                     dbUser={dbUser}
                     onAIResponse={handleAIResponse}
                     userLocation={aiLocationContext}
+                    weatherContext={weatherCtx}
                 />
 
                 {/* Map */}
                 <MapView
                     userLocation={userLocation}
                     markers={mapMarkers}
+                    routeGeometry={routeGeometry}
                     onMapReady={() => setMapActive(true)}
+                />
+
+                {/* Route Intelligence */}
+                <RoutePanel
+                    userLocation={userLocation}
+                    markers={mapMarkers}
+                    onRouteCalculated={handleRouteCalculated}
                 />
 
                 {/* Status indicators */}
@@ -313,7 +368,9 @@ export default function DashboardPage() {
                         { label: "AUTH", status: "ACTIVE", ok: true },
                         { label: "DATABASE", status: "ACTIVE", ok: true },
                         { label: "AI ENGINE", status: aiActive ? "ACTIVE" : "PENDING", ok: aiActive },
+                        { label: "WEATHER", status: weather ? "ACTIVE" : "PENDING", ok: !!weather },
                         { label: "MAPS", status: mapActive ? "ACTIVE" : "PENDING", ok: mapActive },
+                        { label: "ROUTES", status: routeActive ? "ACTIVE" : "PENDING", ok: routeActive },
                     ].map((item) => (
                         <div
                             key={item.label}
