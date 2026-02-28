@@ -1,9 +1,11 @@
 import { UserButton, useUser } from "@clerk/clerk-react";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { Y, BK, WH } from "../constants/theme";
 import useUserSync from "../hooks/useUserSync";
 import useGeolocation from "../hooks/useGeolocation";
+import { saveUserLocation } from "../services/supabaseClient";
 import Cursor from "../components/Cursor";
+import LocationBar from "../components/LocationBar";
 import IntentInput from "../components/IntentInput";
 import AIChat from "../components/AIChat";
 import MapView from "../components/MapView";
@@ -11,10 +13,28 @@ import MapView from "../components/MapView";
 export default function DashboardPage() {
     const { user, isLoaded } = useUser();
     const { dbUser } = useUserSync();
-    const { location: userLocation } = useGeolocation();
+    const { location: userLocation, city, loading: geoLoading, permissionDenied, setManualCity } = useGeolocation();
     const [aiActive, setAiActive] = useState(false);
     const [mapActive, setMapActive] = useState(false);
     const [mapMarkers, setMapMarkers] = useState([]);
+
+    // Save location to Supabase whenever it changes
+    useEffect(() => {
+        if (dbUser?.id && userLocation?.lat && userLocation?.lng) {
+            saveUserLocation({
+                userId: dbUser.id,
+                lat: userLocation.lat,
+                lng: userLocation.lng,
+                city: city || null,
+            });
+        }
+    }, [dbUser?.id, userLocation?.lat, userLocation?.lng, city]);
+
+    // Build location context object for AI
+    const aiLocationContext = useMemo(() => {
+        if (!userLocation) return null;
+        return { lat: userLocation.lat, lng: userLocation.lng, city: city || null };
+    }, [userLocation, city]);
 
     const handleAIResponse = useCallback((parsedResult) => {
         setAiActive(true);
@@ -255,11 +275,24 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
+                {/* Location Bar */}
+                <LocationBar
+                    location={userLocation}
+                    city={city}
+                    loading={geoLoading}
+                    permissionDenied={permissionDenied}
+                    onManualCity={setManualCity}
+                />
+
                 {/* Intent Input */}
                 <IntentInput dbUser={dbUser} />
 
                 {/* AI Chat */}
-                <AIChat dbUser={dbUser} onAIResponse={handleAIResponse} />
+                <AIChat
+                    dbUser={dbUser}
+                    onAIResponse={handleAIResponse}
+                    userLocation={aiLocationContext}
+                />
 
                 {/* Map */}
                 <MapView

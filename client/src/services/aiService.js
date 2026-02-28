@@ -27,7 +27,7 @@ Rules:
 - If the query is not travel-related, politely redirect to travel topics
 - ALWAYS return valid JSON, nothing else`;
 
-export async function askMargDarshak(userMessage, chatHistory = []) {
+export async function askMargDarshak(userMessage, chatHistory = [], userLocation = null) {
     if (!GROQ_API_KEY || GROQ_API_KEY === "gsk_REPLACE_WITH_YOUR_GROQ_KEY") {
         return {
             error: true,
@@ -35,8 +35,18 @@ export async function askMargDarshak(userMessage, chatHistory = []) {
         };
     }
 
+    // Inject user's current location context into the prompt
+    let locationContext = "";
+    if (userLocation?.lat && userLocation?.lng) {
+        locationContext = `\n\n[CONTEXT] The user's current location is: lat=${userLocation.lat.toFixed(4)}, lng=${userLocation.lng.toFixed(4)}`;
+        if (userLocation.city) {
+            locationContext += `, city: ${userLocation.city}`;
+        }
+        locationContext += ". Use this to give nearby recommendations when relevant.";
+    }
+
     const messages = [
-        { role: "system", content: SYSTEM_PROMPT },
+        { role: "system", content: SYSTEM_PROMPT + locationContext },
         ...chatHistory.slice(-6).map((m) => ({
             role: m.role,
             content: m.content,

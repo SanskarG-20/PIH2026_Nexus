@@ -110,6 +110,34 @@ export async function saveAIHistory({ userId, prompt, response }) {
 }
 
 /**
+ * Save user's detected/manual location to Supabase users table.
+ */
+export async function saveUserLocation({ userId, lat, lng, city }) {
+    if (!supabase) return null;
+
+    const updates = {};
+    if (lat != null) updates.last_lat = lat;
+    if (lng != null) updates.last_lng = lng;
+    if (city) updates.last_city = city;
+
+    if (Object.keys(updates).length === 0) return null;
+
+    const { data, error } = await supabase
+        .from("users")
+        .update(updates)
+        .eq("id", userId)
+        .select()
+        .single();
+
+    if (error) {
+        console.error("[MargDarshak] Location save failed:", error.message);
+        return null;
+    }
+    console.log("[MargDarshak] Location saved:", city || `${lat},${lng}`);
+    return data;
+}
+
+/**
  * Save a user intent (travel query).
  */
 export async function saveIntent({ userId, query }) {

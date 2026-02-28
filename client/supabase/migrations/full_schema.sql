@@ -11,9 +11,26 @@ create table if not exists users (
   full_name   text,
   avatar_url  text,
   phone       text,
+  last_lat    double precision,
+  last_lng    double precision,
+  last_city   text,
   created_at  timestamptz default now()
 );
 create index if not exists idx_users_clerk_id on users (clerk_id);
+
+-- Add location columns if table already exists (safe to re-run)
+do $$
+begin
+  if not exists (select 1 from information_schema.columns where table_name='users' and column_name='last_lat') then
+    alter table users add column last_lat double precision;
+  end if;
+  if not exists (select 1 from information_schema.columns where table_name='users' and column_name='last_lng') then
+    alter table users add column last_lng double precision;
+  end if;
+  if not exists (select 1 from information_schema.columns where table_name='users' and column_name='last_city') then
+    alter table users add column last_city text;
+  end if;
+end $$;
 
 -- 2. TRIPS
 create table if not exists trips (

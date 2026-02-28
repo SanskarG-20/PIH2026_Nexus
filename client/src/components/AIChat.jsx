@@ -3,7 +3,7 @@ import { Y, BK, WH } from "../constants/theme";
 import { askMargDarshak } from "../services/aiService";
 import { saveAIHistory, getAIHistory } from "../services/supabaseClient";
 
-export default function AIChat({ dbUser, onAIResponse }) {
+export default function AIChat({ dbUser, onAIResponse, userLocation }) {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
@@ -52,7 +52,7 @@ export default function AIChat({ dbUser, onAIResponse }) {
         setMessages((prev) => [...prev, { role: "user", content: userMsg }]);
         setLoading(true);
 
-        const result = await askMargDarshak(userMsg, messages);
+        const result = await askMargDarshak(userMsg, messages, userLocation);
         const aiContent = result.error
             ? result.summary
             : JSON.stringify(result);
