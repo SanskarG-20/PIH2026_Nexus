@@ -52,6 +52,8 @@ export async function fetchWeatherAndAQI(lat, lng) {
             fetch(
                 `${WEATHER_URL}?latitude=${lat}&longitude=${lng}` +
                 `&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,uv_index` +
+                `&hourly=precipitation_probability` +
+                `&forecast_days=1` +
                 `&timezone=auto`
             ),
             fetch(
@@ -68,6 +70,14 @@ export async function fetchWeatherAndAQI(lat, lng) {
 
         const weatherData = await weatherRes.json();
         const current = weatherData.current;
+
+        // Extract rain probability for current hour from hourly data
+        let rainProbability = null;
+        const hourlyPrecip = weatherData.hourly?.precipitation_probability;
+        if (hourlyPrecip && hourlyPrecip.length > 0) {
+            const currentHour = new Date().getHours();
+            rainProbability = hourlyPrecip[currentHour] ?? hourlyPrecip[0];
+        }
 
         // Parse AQI (may fail for some locations)
         let aqiData = null;
@@ -87,6 +97,7 @@ export async function fetchWeatherAndAQI(lat, lng) {
             humidity: current?.relative_humidity_2m,
             windSpeed: current?.wind_speed_10m,
             uvIndex: current?.uv_index,
+            rainProbability,
             weatherCode,
             weatherLabel: wmo.label,
             weatherIcon: wmo.icon,
@@ -112,6 +123,10 @@ export function buildWeatherContext(weather) {
     let ctx = `\n\n[WEATHER] Current conditions: ${weather.weatherLabel} ${weather.weatherIcon}, `;
     ctx += `${weather.temperature}°C (feels like ${weather.feelsLike}°C), `;
     ctx += `humidity ${weather.humidity}%, wind ${weather.windSpeed} km/h`;
+
+    if (weather.rainProbability != null && weather.rainProbability > 0) {
+        ctx += `, rain probability ${weather.rainProbability}%`;
+    }
 
     if (weather.uvIndex != null) {
         ctx += `, UV index ${weather.uvIndex}`;

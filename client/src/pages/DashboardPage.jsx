@@ -5,6 +5,8 @@ import useUserSync from "../hooks/useUserSync";
 import useGeolocation from "../hooks/useGeolocation";
 import { saveUserLocation } from "../services/supabaseClient";
 import { fetchWeatherAndAQI, buildWeatherContext } from "../services/weatherService";
+import { getEnvironmentSummary } from "../services/environmentService";
+import { saveEnvironmentLog } from "../services/supabaseClient";
 import Cursor from "../components/Cursor";
 import LocationBar from "../components/LocationBar";
 import WeatherBadge from "../components/WeatherBadge";
@@ -44,10 +46,27 @@ export default function DashboardPage() {
         setWeatherLoading(true);
         fetchWeatherAndAQI(userLocation.lat, userLocation.lng)
             .then((data) => {
-                if (data) setWeather(data);
+                if (data) {
+                    setWeather(data);
+                    // Log environment snapshot to Supabase
+                    if (dbUser?.id) {
+                        saveEnvironmentLog({
+                            userId: dbUser.id,
+                            temperature: data.temperature,
+                            weather: data.weatherLabel,
+                            weatherCode: data.weatherCode,
+                            aqi: data.aqi,
+                            aqiLabel: data.aqiLabel,
+                            humidity: data.humidity,
+                            windSpeed: data.windSpeed,
+                            rainProbability: data.rainProbability,
+                            pm25: data.pm25,
+                        }).catch(() => {}); // non-blocking
+                    }
+                }
             })
             .finally(() => setWeatherLoading(false));
-    }, [userLocation?.lat, userLocation?.lng]);
+    }, [userLocation?.lat, userLocation?.lng, dbUser?.id]);
 
     // Build location context object for AI
     const aiLocationContext = useMemo(() => {
@@ -339,6 +358,7 @@ export default function DashboardPage() {
                     onAIResponse={handleAIResponse}
                     userLocation={aiLocationContext}
                     weatherContext={weatherCtx}
+                    weather={weather}
                 />
 
                 {/* Map */}

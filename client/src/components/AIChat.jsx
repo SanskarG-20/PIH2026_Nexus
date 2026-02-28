@@ -3,8 +3,10 @@ import { Y, BK, WH } from "../constants/theme";
 import { askMargDarshak } from "../services/aiService";
 import { saveAIHistory, getAIHistory } from "../services/supabaseClient";
 import { classifyIntent, buildIntentPrompt } from "../services/intentClassifier";
+import { explainBestRoute } from "../services/explainRouteService";
+import WhyThisRoute from "./WhyThisRoute";
 
-export default function AIChat({ dbUser, onAIResponse, userLocation, weatherContext }) {
+export default function AIChat({ dbUser, onAIResponse, userLocation, weatherContext, weather }) {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
@@ -221,7 +223,7 @@ export default function AIChat({ dbUser, onAIResponse, userLocation, weatherCont
                                 </div>
                             </div>
                         ) : (
-                            <AIResponse msg={msg} />
+                            <AIResponse msg={msg} weather={weather} />
                         )}
                     </div>
                 ))}
@@ -281,7 +283,7 @@ export default function AIChat({ dbUser, onAIResponse, userLocation, weatherCont
     );
 }
 
-function AIResponse({ msg }) {
+function AIResponse({ msg, weather }) {
     const data = msg.parsed;
 
     if (!data || data.error) {
@@ -505,7 +507,7 @@ function AIResponse({ msg }) {
 
             {/* Transport Options */}
             {data.transportOptions?.length > 0 && (
-                <TransportReveal options={data.transportOptions} />
+                <TransportReveal options={data.transportOptions} weather={weather} />
             )}
         </div>
     );
@@ -651,7 +653,7 @@ function LiveDecisionSteps() {
 
 /* ── Transport Reveal (staggered + glow) ──────── */
 
-function TransportReveal({ options }) {
+function TransportReveal({ options, weather }) {
     const [revealCount, setRevealCount] = useState(0);
     const [glowBest, setGlowBest] = useState(false);
 
@@ -711,35 +713,39 @@ function TransportReveal({ options }) {
                 })}
             </div>
 
-            {/* Decision summary after all revealed */}
+            {/* Decision summary + WhyThisRoute after all revealed */}
             {glowBest && (() => {
                 const best = options.find((o) => o.isBest);
                 if (!best) return null;
+                const explanation = explainBestRoute(best, options, weather);
                 return (
-                    <div style={{
-                        marginTop: 10,
-                        padding: "8px 14px",
-                        background: "rgba(204,255,0,.04)",
-                        borderLeft: `3px solid ${Y}`,
-                        animation: "ldm-step-in 0.4s ease both",
-                    }}>
-                        <span style={{
-                            fontFamily: "'Bebas Neue',sans-serif",
-                            fontSize: 11,
-                            letterSpacing: 2,
-                            color: Y,
+                    <>
+                        <div style={{
+                            marginTop: 10,
+                            padding: "8px 14px",
+                            background: "rgba(204,255,0,.04)",
+                            borderLeft: `3px solid ${Y}`,
+                            animation: "ldm-step-in 0.4s ease both",
                         }}>
-                            AI RECOMMENDATION
-                        </span>
-                        <span style={{
-                            fontFamily: "'DM Sans',sans-serif",
-                            fontSize: 12,
-                            color: "rgba(255,255,255,.6)",
-                            marginLeft: 8,
-                        }}>
-                            {best.whyBest || `${best.label || best.mode} is the best option`}
-                        </span>
-                    </div>
+                            <span style={{
+                                fontFamily: "'Bebas Neue',sans-serif",
+                                fontSize: 11,
+                                letterSpacing: 2,
+                                color: Y,
+                            }}>
+                                AI RECOMMENDATION
+                            </span>
+                            <span style={{
+                                fontFamily: "'DM Sans',sans-serif",
+                                fontSize: 12,
+                                color: "rgba(255,255,255,.6)",
+                                marginLeft: 8,
+                            }}>
+                                {best.whyBest || `${best.label || best.mode} is the best option`}
+                            </span>
+                        </div>
+                        <WhyThisRoute reasons={explanation.reasons} />
+                    </>
                 );
             })()}
         </div>
@@ -886,8 +892,8 @@ function TransportCard({ opt, glowing }) {
                 </div>
             </div>
 
-            {/* Route info */}
-            {(opt.boarding || opt.destination) && (
+            {/* Route info — only show if boarding and destination are different */}
+            {(opt.boarding || opt.destination) && opt.boarding !== opt.destination && (
                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6, flexWrap: "wrap" }}>
                     {opt.boarding && (
                         <span style={{
@@ -934,6 +940,17 @@ function TransportCard({ opt, glowing }) {
                 {opt.details && (
                     <TransportStat label="TYPE" value={opt.details} />
                 )}
+                {opt.safetyScore != null && (
+                    <TransportStat
+                        label="\uD83D\uDEE1\uFE0F SAFETY"
+                        value={opt.safetyScore + "/10"}
+                        color={
+                            opt.safetyScore >= 8 ? "#22c55e" :
+                            opt.safetyScore >= 5 ? "#eab308" :
+                            "#ef4444"
+                        }
+                    />
+                )}
             </div>
 
             {/* Peak warning */}
@@ -944,9 +961,32 @@ function TransportCard({ opt, glowing }) {
                     padding: "4px 8px",
                     background: "rgba(249,115,22,.06)",
                     border: "1px solid rgba(249,115,22,.12)",
+                    marginBottom: opt.whyBest || opt.safetyReasoning ? 6 : 0,
+                }}>
+                    \u26A0 {opt.peakWarning}
+                </div>
+            )}
+
+            {/* Safety reasoning */}
+            {opt.safetyReasoning && (
+                <div style={{
+                    fontFamily: "'DM Sans',sans-serif",
+                    fontSize: 11,
+                    color: opt.safetyScore >= 8 ? "#22c55e" : opt.safetyScore >= 5 ? "#eab308" : "#ef4444",
+                    padding: "4px 8px",
+                    background: opt.safetyScore >= 8
+                        ? "rgba(34,197,94,.06)"
+                        : opt.safetyScore >= 5
+                        ? "rgba(234,179,8,.06)"
+                        : "rgba(239,68,68,.06)",
+                    border: opt.safetyScore >= 8
+                        ? "1px solid rgba(34,197,94,.12)"
+                        : opt.safetyScore >= 5
+                        ? "1px solid rgba(234,179,8,.12)"
+                        : "1px solid rgba(239,68,68,.12)",
                     marginBottom: opt.whyBest ? 6 : 0,
                 }}>
-                    ⚠ {opt.peakWarning}
+                    \uD83D\uDEE1\uFE0F {opt.safetyReasoning}
                 </div>
             )}
 

@@ -68,6 +68,13 @@ export default function WeatherBadge({ weather, loading, city }) {
                     <StatItem label="FEELS LIKE" value={`${weather.feelsLike}°C`} />
                     <StatItem label="HUMIDITY" value={`${weather.humidity}%`} />
                     <StatItem label="WIND" value={`${weather.windSpeed} km/h`} />
+                    {weather.rainProbability != null && weather.rainProbability > 0 && (
+                        <StatItem
+                            label="RAIN"
+                            value={`${weather.rainProbability}%`}
+                            highlight={weather.rainProbability >= 50}
+                        />
+                    )}
                     {weather.uvIndex != null && (
                         <StatItem
                             label="UV INDEX"

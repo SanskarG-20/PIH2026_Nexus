@@ -39,7 +39,9 @@ IMPORTANT — Transport Analysis Rules:
 - For NON-route queries (sightseeing, food, etc.), set "transportOptions" to an empty array [].
 - In metro cities (Mumbai, Delhi, Chennai, Kolkata, Bangalore, Hyderabad), always include local train AND metro options with REAL station names.
 - Use real Indian bus route numbers where known, otherwise simulate realistic ones.
-- Bus boarding and destination stops MUST be DIFFERENT. Never use the same stop name for both. Use the nearest real bus stop to the origin as boarding, and the nearest real bus stop to the destination as alighting.
+- CRITICAL: For ALL transport modes (train, metro, bus, walk, cab) — the "boarding" and "destination" fields MUST be DIFFERENT. Never set boarding and destination to the same station/stop name. If origin and destination are in the same area, use the nearest station to origin as boarding and the nearest station to the actual destination as alighting — these will always be different places.
+- Bus boarding and destination stops MUST be DIFFERENT. Use the nearest real bus stop to the origin as boarding, and the nearest real bus stop to the destination as alighting.
+- Train/Metro: boarding = station closest to user's START location. destination = station closest to user's END location. These are NEVER the same unless the user is traveling 0 km.
 - Cab/auto prices: base ₹30 + ₹12-15/km. Mention Ola/Uber/auto.
 - Peak hours: Morning 8-11 AM, Evening 6-9 PM — add peakWarning if travel falls in these windows.
 - ALWAYS mark exactly ONE option as "isBest": true with a "whyBest" explanation.
@@ -64,7 +66,16 @@ General Rules:
 - Include local tips (best chai spots, rickshaw rates, etc.)
 - ALWAYS include accurate lat/lng coordinates for each place (use real coordinates for Indian locations)
 - If the query is not travel-related, politely redirect to travel topics
-- ALWAYS return valid JSON, nothing else`;
+- ALWAYS return valid JSON, nothing else
+
+SAFETY INTELLIGENCE Rules:
+- When recommending routes, assess safety of each area the route passes through.
+- If current time is after 10 PM (night), reduce safety confidence and warn the user.
+- For low-safety zones (score < 5), add reasoning: "Route adjusted for better lighting and crowd presence."
+- Prefer well-lit, high-traffic routes at night.
+- Recommend cab/auto over walking through low-safety areas.
+- Metro stations are generally safe (CCTV, security staff).
+- Include a safetyNote field in each transportOption when relevant.`;
 
 export async function askMargDarshak(userMessage, chatHistory = [], userLocation = null, weatherContext = "", intentContext = "") {
     if (!GROQ_API_KEY || GROQ_API_KEY === "gsk_REPLACE_WITH_YOUR_GROQ_KEY") {

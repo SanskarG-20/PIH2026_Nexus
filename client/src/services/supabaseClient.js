@@ -196,3 +196,33 @@ export async function getIntents(userId) {
     }
     return data;
 }
+
+/**
+ * Save an environment log snapshot (weather + AQI).
+ */
+export async function saveEnvironmentLog({ userId, temperature, weather, weatherCode, aqi, aqiLabel, humidity, windSpeed, rainProbability, pm25 }) {
+    if (!supabase) return null;
+
+    const { data, error } = await supabase
+        .from("environment_logs")
+        .insert({
+            user_id: userId,
+            temp: temperature,
+            weather: weather,
+            weather_code: weatherCode,
+            aqi: aqi,
+            aqi_label: aqiLabel,
+            humidity: humidity,
+            wind_speed: windSpeed,
+            rain_probability: rainProbability,
+            pm25: pm25,
+        })
+        .select()
+        .single();
+
+    if (error) {
+        console.error("[MargDarshak] Environment log save failed:", error.message);
+        return null;
+    }
+    return data;
+}

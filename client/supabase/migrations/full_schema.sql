@@ -62,6 +62,23 @@ create table if not exists intents (
 );
 create index if not exists idx_intents_user_id on intents (user_id);
 
+-- 5. ENVIRONMENT LOGS
+create table if not exists environment_logs (
+  id                uuid default gen_random_uuid() primary key,
+  user_id           uuid references users(id) on delete cascade not null,
+  temp              double precision,
+  weather           text,
+  weather_code      integer,
+  aqi               integer,
+  aqi_label         text,
+  humidity          double precision,
+  wind_speed        double precision,
+  rain_probability  integer,
+  pm25              double precision,
+  created_at        timestamptz default now()
+);
+create index if not exists idx_env_logs_user_id on environment_logs (user_id);
+
 -- ============================================================
 -- RLS (drop + recreate to be safe on re-runs)
 -- ============================================================
@@ -70,6 +87,7 @@ alter table users enable row level security;
 alter table trips enable row level security;
 alter table ai_history enable row level security;
 alter table intents enable row level security;
+alter table environment_logs enable row level security;
 
 -- Users
 drop policy if exists "Users can read own data" on users;
@@ -100,3 +118,9 @@ drop policy if exists "Users can delete own intents" on intents;
 create policy "Users can read own intents" on intents for select using (user_id in (select id from users));
 create policy "Users can insert own intents" on intents for insert with check (user_id in (select id from users));
 create policy "Users can delete own intents" on intents for delete using (user_id in (select id from users));
+
+-- Environment Logs
+drop policy if exists "Users can read own env_logs" on environment_logs;
+drop policy if exists "Users can insert own env_logs" on environment_logs;
+create policy "Users can read own env_logs" on environment_logs for select using (user_id in (select id from users));
+create policy "Users can insert own env_logs" on environment_logs for insert with check (user_id in (select id from users));

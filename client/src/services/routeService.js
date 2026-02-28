@@ -8,6 +8,7 @@
 
 import { evaluateMetro } from "./metroService.js";
 import { evaluateBus } from "./busService.js";
+import { attachSafetyToModes } from "./safetyService.js";
 
 const ORS_API_KEY = import.meta.env.VITE_ORS_API_KEY;
 const ORS_URL = "https://api.openrouteservice.org/v2/directions";
@@ -244,6 +245,13 @@ export async function compareRoutes(startLat, startLng, endLat, endLng) {
     }
 
     modes.forEach(function(m) { m.isBest = m.mode === bestMode; });
+
+    // Attach safety intelligence to each mode
+    try {
+        attachSafetyToModes(modes, startLat, startLng, endLat, endLng);
+    } catch (err) {
+        console.warn("[MargDarshak Route] Safety evaluation failed:", err);
+    }
 
     return { modes: modes, distanceKm: distanceKm, usingFallback: usingFallback, error: false };
 }
