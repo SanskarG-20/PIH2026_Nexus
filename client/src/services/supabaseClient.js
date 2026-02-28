@@ -1,0 +1,170 @@
+import { createClient } from "@supabase/supabase-js";
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+const supabaseReady =
+    !!SUPABASE_URL &&
+    !!SUPABASE_ANON_KEY &&
+    SUPABASE_URL !== "https://YOUR-PROJECT.supabase.co";
+
+if (!supabaseReady) {
+    console.warn(
+        "[MargDarshak] Missing Supabase credentials — database features disabled. Add your keys to client/.env"
+    );
+}
+
+export const supabase = supabaseReady
+    ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    : null;
+
+export { supabaseReady };
+
+/**
+ * Upsert a Clerk user into the Supabase `users` table.
+ * If clerk_id already exists, updates email/name/avatar.
+ * If not, creates a new row.
+ */
+export async function syncUserWithDatabase(userData) {
+    if (!supabase) {
+        console.log("[MargDarshak] Supabase not configured — skipping user sync");
+        return null;
+    }
+
+    const { data, error } = await supabase
+        .from("users")
+        .upsert(
+            {
+                clerk_id: userData.clerkId,
+                email: userData.email,
+                full_name: userData.fullName,
+                avatar_url: userData.avatarUrl,
+                phone: userData.phone,
+            },
+            { onConflict: "clerk_id" }
+        )
+        .select()
+        .single();
+
+    if (error) {
+        console.error("[MargDarshak] User sync failed:", error.message);
+        return null;
+    }
+
+    console.log("[MargDarshak] User synced to Supabase:", data.id);
+    return data;
+}
+
+/**
+ * Get user row by Clerk ID.
+ */
+export async function getUserByClerkId(clerkId) {
+    if (!supabase) return null;
+
+    const { data, error } = await supabase
+        .from("users")
+        .select("*")
+        .eq("clerk_id", clerkId)
+        .single();
+
+    if (error) return null;
+    return data;
+}
+
+/**
+ * Create a new trip for the given Supabase user ID.
+ */
+export async function createTrip({ userId, intent, origin, destination }) {
+    if (!supabase) return null;
+
+    const { data, error } = await supabase
+        .from("trips")
+        .insert({ user_id: userId, intent, origin, destination })
+        .select()
+        .single();
+
+    if (error) {
+        console.error("[MargDarshak] Trip creation failed:", error.message);
+        return null;
+    }
+    return data;
+}
+
+/**
+ * Save an AI prompt/response pair for the given Supabase user ID.
+ */
+export async function saveAIHistory({ userId, prompt, response }) {
+    if (!supabase) return null;
+
+    const { data, error } = await supabase
+        .from("ai_history")
+        .insert({ user_id: userId, prompt, response })
+        .select()
+        .single();
+
+    if (error) {
+        console.error("[MargDarshak] AI history save failed:", error.message);
+        return null;
+    }
+    return data;
+}
+
+/**
+ * Save a user intent (travel query).
+ */
+export async function saveIntent({ userId, query }) {
+    if (!supabase) return null;
+
+    const { data, error } = await supabase
+        .from("intents")
+        .insert({ user_id: userId, query })
+        .select()
+        .single();
+
+    if (error) {
+        console.error("[MargDarshak] Intent save failed:", error.message);
+        return null;
+    }
+    return data;
+}
+
+/**
+ * Get AI chat history for a user, oldest first (for chat display).
+ * Returns the most recent 20 conversations.
+ */
+export async function getAIHistory(userId, limit = 20) {
+    if (!supabase) return [];
+
+    const { data, error } = await supabase
+        .from("ai_history")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(limit);
+
+    if (error) {
+        console.error("[MargDarshak] Fetch AI history failed:", error.message);
+        return [];
+    }
+    // Return in chronological order for chat display
+    return (data || []).reverse();
+}
+
+/**
+ * Get all intents for a user, newest first.
+ */
+export async function getIntents(userId) {
+    if (!supabase) return [];
+
+    const { data, error } = await supabase
+        .from("intents")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
+
+    if (error) {
+        console.error("[MargDarshak] Fetch intents failed:", error.message);
+        return [];
+    }
+    return data;
+}
