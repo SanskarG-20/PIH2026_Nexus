@@ -20,7 +20,7 @@
 11. [API Integrations](#11-api-integrations)
 12. [Screenshots](#12-screenshots)
 13. [Future Roadmap](#13-future-roadmap)
-14. [Hackathon Impact](#14-hackathon-impact)
+14. [Impact](#14-impact)
 
 ---
 
@@ -446,7 +446,7 @@ All tables have Row Level Security (RLS) enabled — users can only access their
 
 ---
 
-## 14. Hackathon Impact
+## 14. Impact
 
 ### Innovation
 MargDarshak introduces three novel concepts to the Indian travel assistant space:
