@@ -7,6 +7,7 @@ import { saveUserLocation } from "../services/supabaseClient";
 import { fetchWeatherAndAQI, buildWeatherContext } from "../services/weatherService";
 import { getEnvironmentSummary } from "../services/environmentService";
 import { saveEnvironmentLog } from "../services/supabaseClient";
+import { isOfflineFlagSet } from "../utils/offlineCache";
 import Cursor from "../components/Cursor";
 import LocationBar from "../components/LocationBar";
 import WeatherBadge from "../components/WeatherBadge";
@@ -28,6 +29,33 @@ export default function DashboardPage() {
     const [routeGeometry, setRouteGeometry] = useState([]);
     const [routeActive, setRouteActive] = useState(false);
     const [pendingQuery, setPendingQuery] = useState(null);
+    const [offline, setOffline] = useState(!navigator.onLine);
+
+    // Detect browser online/offline events + check cache flag after AI calls
+    useEffect(() => {
+        const goOffline = () => setOffline(true);
+        const goOnline = () => {
+            setOffline(false);
+            // Clear the cache offline flag immediately
+            try { localStorage.removeItem("md_offline_active"); } catch {}
+        };
+        window.addEventListener("offline", goOffline);
+        window.addEventListener("online", goOnline);
+
+        // Poll the cache offline flag (set by services on API failure)
+        const interval = setInterval(() => {
+            setOffline((prev) => {
+                const flag = isOfflineFlagSet();
+                return !navigator.onLine || flag;
+            });
+        }, 3000);
+
+        return () => {
+            window.removeEventListener("offline", goOffline);
+            window.removeEventListener("online", goOnline);
+            clearInterval(interval);
+        };
+    }, []);
 
     // Save location to Supabase whenever it changes
     useEffect(() => {
@@ -146,6 +174,41 @@ export default function DashboardPage() {
             }}
         >
             <Cursor />
+
+            {/* OFFLINE MODE BADGE */}
+            {offline && (
+                <div style={{
+                    position: "fixed",
+                    top: 14,
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    zIndex: 200,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "6px 18px",
+                    background: "rgba(239,68,68,.12)",
+                    border: "1px solid rgba(239,68,68,.3)",
+                    backdropFilter: "blur(8px)",
+                    animation: "ldm-step-in 0.3s ease both",
+                }}>
+                    <span style={{
+                        width: 8, height: 8, borderRadius: "50%",
+                        background: "#ef4444",
+                        boxShadow: "0 0 8px #ef4444",
+                        animation: "pulse-ring 1.5s ease infinite",
+                        display: "inline-block",
+                    }} />
+                    <span style={{
+                        fontFamily: "'Bebas Neue',sans-serif",
+                        fontSize: 13,
+                        letterSpacing: 2,
+                        color: "#ef4444",
+                    }}>
+                        OFFLINE MODE ACTIVE
+                    </span>
+                </div>
+            )}
 
             {/* ── Animated background ── */}
             <div className="dark-page-bg">

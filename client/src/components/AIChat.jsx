@@ -1044,7 +1044,7 @@ function TransportCard({ opt, glowing }) {
                 )}
                 {opt.safetyScore != null && (
                     <TransportStat
-                        label="\uD83D\uDEE1\uFE0F SAFETY"
+                        label={"\uD83D\uDEE1\uFE0F SAFETY"}
                         value={opt.safetyScore + "/10"}
                         color={
                             opt.safetyScore >= 8 ? "#22c55e" :
@@ -1065,7 +1065,7 @@ function TransportCard({ opt, glowing }) {
                     border: "1px solid rgba(249,115,22,.12)",
                     marginBottom: opt.whyBest || opt.safetyReasoning ? 6 : 0,
                 }}>
-                    \u26A0 {opt.peakWarning}
+                    {"\u26A0"} {opt.peakWarning}
                 </div>
             )}
 
@@ -1088,7 +1088,7 @@ function TransportCard({ opt, glowing }) {
                         : "1px solid rgba(239,68,68,.12)",
                     marginBottom: opt.whyBest ? 6 : 0,
                 }}>
-                    \uD83D\uDEE1\uFE0F {opt.safetyReasoning}
+                    {"\uD83D\uDEE1\uFE0F"} {opt.safetyReasoning}
                 </div>
             )}
 

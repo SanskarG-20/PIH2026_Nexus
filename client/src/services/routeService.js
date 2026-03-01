@@ -9,6 +9,7 @@
 import { evaluateMetro } from "./metroService.js";
 import { evaluateBus } from "./busService.js";
 import { attachSafetyToModes } from "./safetyService.js";
+import { cacheRoute, getCachedRoute, setOfflineFlag } from "../utils/offlineCache.js";
 
 const ORS_API_KEY = import.meta.env.VITE_ORS_API_KEY;
 const ORS_URL = "https://api.openrouteservice.org/v2/directions";
@@ -253,5 +254,9 @@ export async function compareRoutes(startLat, startLng, endLat, endLng) {
         console.warn("[MargDarshak Route] Safety evaluation failed:", err);
     }
 
-    return { modes: modes, distanceKm: distanceKm, usingFallback: usingFallback, error: false };
+    const result = { modes: modes, distanceKm: distanceKm, usingFallback: usingFallback, error: false };
+
+    // Cache successful route result
+    cacheRoute(result);
+    return result;
 }

@@ -3,6 +3,8 @@
  * Docs: https://open-meteo.com/en/docs
  */
 
+import { cacheWeather, getCachedWeather, setOfflineFlag } from "../utils/offlineCache";
+
 const WEATHER_URL = "https://api.open-meteo.com/v1/forecast";
 const AQI_URL = "https://air-quality-api.open-meteo.com/v1/air-quality";
 
@@ -91,7 +93,7 @@ export async function fetchWeatherAndAQI(lat, lng) {
         const aqiValue = aqiData?.us_aqi ?? null;
         const aqiLevel = getAQILevel(aqiValue);
 
-        return {
+        const result = {
             temperature: current?.temperature_2m,
             feelsLike: current?.apparent_temperature,
             humidity: current?.relative_humidity_2m,
@@ -108,8 +110,19 @@ export async function fetchWeatherAndAQI(lat, lng) {
             pm10: aqiData?.pm10 ?? null,
             timestamp: new Date().toISOString(),
         };
+
+        // Cache successful weather data
+        cacheWeather(result);
+        return result;
     } catch (err) {
         console.error("[MargDarshak Weather] Network error:", err);
+
+        // Offline fallback: return cached weather
+        const cached = getCachedWeather();
+        if (cached) {
+            setOfflineFlag(true);
+            return { ...cached.data, _fromCache: true };
+        }
         return null;
     }
 }

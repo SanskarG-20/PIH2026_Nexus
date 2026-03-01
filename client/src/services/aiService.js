@@ -1,3 +1,5 @@
+import { cacheAIResponse, getCachedAI, setOfflineFlag } from "../utils/offlineCache";
+
 const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 const MODEL = "llama-3.3-70b-versatile";
@@ -130,12 +132,29 @@ export async function askMargDarshak(userMessage, chatHistory = [], userLocation
         const content = data.choices?.[0]?.message?.content;
 
         try {
-            return JSON.parse(content);
+            const parsed = JSON.parse(content);
+            // Cache successful response
+            cacheAIResponse(userMessage, parsed);
+            setOfflineFlag(false);
+            return parsed;
         } catch {
             return { summary: content, places: [], tips: [] };
         }
     } catch (err) {
         console.error("[MargDarshak AI] Network error:", err);
-        return { error: true, summary: "Network error. Check your connection." };
+
+        // Offline fallback: return cached AI response
+        const cached = getCachedAI();
+        if (cached) {
+            setOfflineFlag(true);
+            return {
+                ...cached.response,
+                _fromCache: true,
+                summary: (cached.response.summary || "") + "\n\n[Offline — showing cached result]",
+            };
+        }
+
+        setOfflineFlag(true);
+        return { error: true, summary: "You're offline. No cached data available yet — try again when connected." };
     }
 }
