@@ -748,6 +748,28 @@ function TransportReveal({ options, weather, dbUser }) {
     // Enrich AI options with eco scores estimated from duration
     const enrichedOptions = enrichWithEco(options);
 
+    // Reset saved state when the matching trip is deleted from SavedRoutes
+    useEffect(() => {
+        const handler = (e) => {
+            const { source, destination } = e.detail || {};
+            // Find route info to compare
+            const routeOpt = enrichedOptions.find(
+                (o) => o.boarding && o.destination && o.boarding !== o.destination
+            ) || enrichedOptions.find((o) => o.isBest);
+            const mySource = routeOpt?.boarding || "";
+            const myDest = routeOpt?.destination || "";
+            if (
+                source && destination &&
+                source.toLowerCase() === mySource.toLowerCase() &&
+                destination.toLowerCase() === myDest.toLowerCase()
+            ) {
+                setSaved(false);
+            }
+        };
+        window.addEventListener("savedtrips:deleted", handler);
+        return () => window.removeEventListener("savedtrips:deleted", handler);
+    }, [enrichedOptions]);
+
     useEffect(() => {
         let count = 0;
         const total = enrichedOptions.length;

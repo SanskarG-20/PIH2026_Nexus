@@ -38,8 +38,16 @@ export default function SavedRoutes({ dbUser, onSelectRoute }) {
 
     const handleDelete = async (e, tripId) => {
         e.stopPropagation();
+        const trip = trips.find((t) => t.id === tripId);
         const ok = await deleteSavedTrip(tripId);
-        if (ok) setTrips((prev) => prev.filter((t) => t.id !== tripId));
+        if (ok) {
+            setTrips((prev) => prev.filter((t) => t.id !== tripId));
+            if (trip) {
+                window.dispatchEvent(new CustomEvent("savedtrips:deleted", {
+                    detail: { source: trip.source, destination: trip.destination },
+                }));
+            }
+        }
     };
 
     const handleSelect = (trip) => {
