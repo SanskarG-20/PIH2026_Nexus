@@ -7,6 +7,7 @@ import { explainBestRoute } from "../services/explainRouteService";
 import { calculateEcoScore } from "../services/ecoScoreService";
 import WhyThisRoute from "./WhyThisRoute";
 import SmartSuggestions from "./SmartSuggestions";
+import JourneyExplainer from "./JourneyExplainer";
 
 export default function AIChat({ dbUser, onAIResponse, userLocation, weatherContext, weather, pendingQuery }) {
     const [messages, setMessages] = useState([]);
@@ -881,11 +882,12 @@ function TransportReveal({ options, weather, dbUser }) {
                                         flexShrink: 0,
                                     }}
                                 >
-                                    {saving ? "..." : saved ? "✓ SAVED" : "⭐ SAVE ROUTE"}
+                                    {saving ? "..." : saved ? "\u2713 SAVED" : "\u2606 SAVE ROUTE"}
                                 </button>
                             )}
                         </div>
                         <WhyThisRoute reasons={explanation.reasons} />
+                        <JourneyExplainer options={enrichedOptions} weather={weather} />
                     </>
                 );
             })()}
@@ -905,12 +907,12 @@ const INTENT_COLORS = {
 };
 
 const INTENT_ICONS = {
-    sightseeing: "\u{1F3DB}",  // 🏛
-    food: "\u{1F37D}",         // 🍽
-    budget: "\u{1F4B0}",       // 💰
-    safety: "\u{1F6E1}",       // 🛡
-    quick_trip: "\u26A1",      // ⚡
-    route: "\u{1F6A6}",        // 🚦
+    sightseeing: "◈",
+    food: "◇",
+    budget: "▣",
+    safety: "◉",
+    quick_trip: "▸",
+    route: "◆",
 };
 
 function IntentBadge({ intent }) {
@@ -1083,7 +1085,7 @@ function TransportCard({ opt, glowing }) {
                 )}
                 {opt.safetyScore != null && (
                     <TransportStat
-                        label={"\uD83D\uDEE1\uFE0F SAFETY"}
+                        label="\u25C9 SAFETY"
                         value={opt.safetyScore + "/10"}
                         color={
                             opt.safetyScore >= 8 ? "#22c55e" :
@@ -1094,7 +1096,7 @@ function TransportCard({ opt, glowing }) {
                 )}
                 {opt.ecoScore != null && (
                     <TransportStat
-                        label={"\uD83C\uDF3F ECO"}
+                        label="\u25C7 ECO"
                         value={opt.ecoScore + "%"}
                         color={
                             opt.ecoScore >= 80 ? "#22c55e" :
@@ -1121,7 +1123,7 @@ function TransportCard({ opt, glowing }) {
                         : "1px solid rgba(6,182,212,.12)",
                     marginBottom: opt.peakWarning || opt.safetyReasoning || opt.whyBest ? 6 : 0,
                 }}>
-                    {"\uD83C\uDF3F"} {opt.ecoSavingsPercent}% less CO{"\u2082"} vs cab ({opt.co2Grams}g vs {Math.round(opt.co2Grams / (1 - opt.ecoSavingsPercent / 100))}g)
+                    {"\u25C7"} {opt.ecoSavingsPercent}% less CO{"\u2082"} vs cab ({opt.co2Grams}g vs {Math.round(opt.co2Grams / (1 - opt.ecoSavingsPercent / 100))}g)
                 </div>
             )}
 
@@ -1135,7 +1137,7 @@ function TransportCard({ opt, glowing }) {
                     border: "1px solid rgba(249,115,22,.12)",
                     marginBottom: opt.whyBest || opt.safetyReasoning ? 6 : 0,
                 }}>
-                    {"\u26A0"} {opt.peakWarning}
+                    {"\u25B2"} {opt.peakWarning}
                 </div>
             )}
 
@@ -1158,7 +1160,7 @@ function TransportCard({ opt, glowing }) {
                         : "1px solid rgba(239,68,68,.12)",
                     marginBottom: opt.whyBest ? 6 : 0,
                 }}>
-                    {"\uD83D\uDEE1\uFE0F"} {opt.safetyReasoning}
+                    {"\u25C9"} {opt.safetyReasoning}
                 </div>
             )}
 

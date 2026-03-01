@@ -3,12 +3,12 @@ import { Y, BK, WH } from "../constants/theme";
 import { getSavedTrips, deleteSavedTrip } from "../services/supabaseClient";
 
 const MODE_EMOJI = {
-    train: "🚆",
-    metro: "🚇",
-    bus: "🚌",
-    cab: "🚕",
-    walk: "🚶",
-    auto: "🛺",
+    train: "\u25A0",
+    metro: "\u25C6",
+    bus: "\u25A3",
+    cab: "\u25C8",
+    walk: "\u25CB",
+    auto: "\u25B8",
 };
 
 export default function SavedRoutes({ dbUser, onSelectRoute }) {
@@ -69,7 +69,7 @@ export default function SavedRoutes({ dbUser, onSelectRoute }) {
                 }}
             >
                 <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    ⭐ SAVED ROUTES
+                    \u2606 SAVED ROUTES
                     {trips.length > 0 && (
                         <span style={{
                             fontFamily: "'DM Sans',sans-serif",
@@ -203,7 +203,7 @@ export default function SavedRoutes({ dbUser, onSelectRoute }) {
                                             color: Y,
                                             opacity: 0.7,
                                         }}>
-                                            {MODE_EMOJI[trip.preferred_mode] || "🚗"} {trip.preferred_mode}
+                                            {MODE_EMOJI[trip.preferred_mode] || "\u25C6"} {trip.preferred_mode}
                                         </span>
                                     )}
                                     <span style={{

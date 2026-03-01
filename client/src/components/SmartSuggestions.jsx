@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { Y, BK } from "../constants/theme";
 
 const SECTION_ICONS = {
-    attractions: "🏛️",
-    food: "🍽️",
-    returnTime: "⏱️",
-    tips: "💡",
+    attractions: "\u25C8",
+    food: "\u25C7",
+    returnTime: "\u25CB",
+    tips: "\u25B8",
 };
 
 export default function SmartSuggestions({ suggestions }) {

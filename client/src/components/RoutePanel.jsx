@@ -286,7 +286,7 @@ export default function RoutePanel({ userLocation, markers = [], onRouteCalculat
                                     background: route.ecoScore >= 80 ? "rgba(34,197,94,.06)" : "rgba(6,182,212,.06)",
                                     border: route.ecoScore >= 80 ? "1px solid rgba(34,197,94,.15)" : "1px solid rgba(6,182,212,.15)",
                                 }}>
-                                    {"\uD83C\uDF3F"} {route.ecoSavingsPercent}% less CO{"\u2082"} vs cab {"\u2002\u00B7\u2002"}{route.co2Grams}g vs {Math.round(route.co2Grams / (1 - route.ecoSavingsPercent / 100))}g
+                                    {"\u25C7"} {route.ecoSavingsPercent}% less CO{"\u2082"} vs cab {"\u2002\u00B7\u2002"}{route.co2Grams}g vs {Math.round(route.co2Grams / (1 - route.ecoSavingsPercent / 100))}g
                                 </div>
                             )}
 
@@ -331,7 +331,7 @@ export default function RoutePanel({ userLocation, markers = [], onRouteCalculat
                                     </div>
                                     {route.peakWarning && (
                                         <div style={{ fontSize: 11, color: "#f59e0b", marginTop: 2 }}>
-                                            ⚠ {route.peakWarning}
+                                            {"\u25B2"} {route.peakWarning}
                                         </div>
                                     )}
                                 </div>
@@ -374,7 +374,7 @@ export default function RoutePanel({ userLocation, markers = [], onRouteCalculat
                                     </div>
                                     {route.peakWarning && (
                                         <div style={{ fontSize: 11, color: "#f59e0b", marginTop: 2 }}>
-                                            ⚠ {route.peakWarning}
+                                            {"\u25B2"} {route.peakWarning}
                                         </div>
                                     )}
                                 </div>
