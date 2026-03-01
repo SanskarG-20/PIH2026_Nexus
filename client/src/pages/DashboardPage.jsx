@@ -16,6 +16,7 @@ import AIChat from "../components/AIChat";
 import SavedRoutes from "../components/SavedRoutes";
 import MapView from "../components/MapView";
 import RoutePanel from "../components/RoutePanel";
+import SOSButton from "../components/SOSButton";
 
 export default function DashboardPage() {
     const { user, isLoaded } = useUser();
@@ -451,6 +452,9 @@ export default function DashboardPage() {
                     markers={mapMarkers}
                     onRouteCalculated={handleRouteCalculated}
                 />
+
+                {/* SOS Emergency Button */}
+                <SOSButton dbUser={dbUser} userLocation={userLocation} />
 
                 {/* Status indicators */}
                 <div

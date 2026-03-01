@@ -289,3 +289,30 @@ export async function deleteSavedTrip(tripId) {
     }
     return true;
 }
+
+/* ── SOS Emergency Logs ────────────────────────────── */
+
+/**
+ * Log an SOS trigger event to Supabase.
+ * Fire-and-forget — errors are silently logged.
+ */
+export async function logSOSTrigger({ userId, lat, lng, area }) {
+    if (!supabase) return null;
+
+    const { data, error } = await supabase
+        .from("sos_logs")
+        .insert({
+            user_id: userId,
+            lat: lat || null,
+            lng: lng || null,
+            area: area || null,
+        })
+        .select()
+        .single();
+
+    if (error) {
+        console.error("[MargDarshak] SOS log failed:", error.message);
+        return null;
+    }
+    return data;
+}

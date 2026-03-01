@@ -90,6 +90,17 @@ create table if not exists saved_trips (
 );
 create index if not exists idx_saved_trips_user_id on saved_trips (user_id);
 
+-- 7. SOS LOGS
+create table if not exists sos_logs (
+  id          uuid default gen_random_uuid() primary key,
+  user_id     uuid references users(id) on delete cascade not null,
+  lat         double precision,
+  lng         double precision,
+  area        text,
+  created_at  timestamptz default now()
+);
+create index if not exists idx_sos_logs_user_id on sos_logs (user_id);
+
 -- ============================================================
 -- RLS (drop + recreate to be safe on re-runs)
 -- ============================================================
@@ -100,6 +111,7 @@ alter table ai_history enable row level security;
 alter table intents enable row level security;
 alter table environment_logs enable row level security;
 alter table saved_trips enable row level security;
+alter table sos_logs enable row level security;
 
 -- Users
 drop policy if exists "Users can read own data" on users;
@@ -144,3 +156,9 @@ drop policy if exists "Users can delete own saved_trips" on saved_trips;
 create policy "Users can read own saved_trips" on saved_trips for select using (user_id in (select id from users));
 create policy "Users can insert own saved_trips" on saved_trips for insert with check (user_id in (select id from users));
 create policy "Users can delete own saved_trips" on saved_trips for delete using (user_id in (select id from users));
+
+-- SOS Logs
+drop policy if exists "Users can read own sos_logs" on sos_logs;
+drop policy if exists "Users can insert own sos_logs" on sos_logs;
+create policy "Users can read own sos_logs" on sos_logs for select using (user_id in (select id from users));
+create policy "Users can insert own sos_logs" on sos_logs for insert with check (user_id in (select id from users));

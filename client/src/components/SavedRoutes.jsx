@@ -69,7 +69,7 @@ export default function SavedRoutes({ dbUser, onSelectRoute }) {
                 }}
             >
                 <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    \u2606 SAVED ROUTES
+                    {"\u2606"} SAVED ROUTES
                     {trips.length > 0 && (
                         <span style={{
                             fontFamily: "'DM Sans',sans-serif",
