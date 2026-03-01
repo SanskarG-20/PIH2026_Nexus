@@ -18,7 +18,7 @@
 9. [Local Setup](#9-local-setup)
 10. [Environment Variables](#10-environment-variables)
 11. [API Integrations](#11-api-integrations)
-12. [Screenshots](#12-screenshots)
+12. [Deployed Link](#12-deployed-link)
 13. [Future Roadmap](#13-future-roadmap)
 14. [Impact](#14-impact)
 
@@ -497,45 +497,11 @@ All tables have Row Level Security (RLS) enabled — users can only access their
 
 ---
 
-## 12. Screenshots
+## 12. Deployed Link
 
-> Replace placeholders below with actual screenshots.
+> **Live URL**: _paste your Vercel deployment link here_
 
-### Landing Page
-![Landing Page](./screenshots/landing.png)
-
-### Dashboard — Default State
-![Dashboard](./screenshots/dashboard.png)
-
-### AI Chat — Transport Analysis
-![Transport Analysis](./screenshots/transport-analysis.png)
-
-### Live Decision Mode
-![Live Decision Mode](./screenshots/live-decision.png)
-
-### Why This Route?
-![Explainable AI](./screenshots/why-this-route.png)
-
-### Eco Travel Score
-![Eco Score](./screenshots/eco-score.png)
-
-### Journey Explainer
-![Journey Explainer](./screenshots/journey-explainer.png)
-
-### SOS Emergency Panel
-![SOS Emergency](./screenshots/sos-emergency.png)
-
-### Saved Trips
-![Saved Trips](./screenshots/saved-trips.png)
-
-### Smart Suggestions
-![Smart Suggestions](./screenshots/smart-suggestions.png)
-
-### Offline Mode
-![Offline Mode](./screenshots/offline-mode.png)
-
-### Weather Badge + Safety Score
-![Weather and Safety](./screenshots/weather-safety.png)
+<!-- Example: https://margdarshak.vercel.app -->
 
 ---
 
