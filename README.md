@@ -533,7 +533,7 @@ All tables have Row Level Security (RLS) enabled — users can only access their
 
 ## 12. Deployed Link
 
-> **Live URL**: [_paste your Vercel deployment link here_](https://margdarshak-2026.vercel.app/)
+> **Live URL**: [MargDarshak](https://margdarshak-2026.vercel.app/)
 
 <!-- Example: https://margdarshak.vercel.app -->
 
