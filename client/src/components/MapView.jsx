@@ -35,17 +35,17 @@ const placeIcon = new L.DivIcon({
     iconAnchor: [6, 6],
 });
 
-/** Recenter map when location changes */
-function RecenterMap({ lat, lng }) {
+/** Recenter map when user's real location arrives */
+function RecenterMap({ userLocation }) {
     const map = useMap();
     const hasFlown = useRef(false);
 
     useEffect(() => {
-        if (lat && lng && !hasFlown.current) {
-            map.flyTo([lat, lng], 13, { duration: 1.5 });
+        if (userLocation?.lat && userLocation?.lng && !hasFlown.current) {
+            map.flyTo([userLocation.lat, userLocation.lng], 13, { duration: 1.5 });
             hasFlown.current = true;
         }
-    }, [lat, lng, map]);
+    }, [userLocation?.lat, userLocation?.lng, map]);
 
     return null;
 }
@@ -90,8 +90,11 @@ function FitMarkers({ markers, userLocation, routeGeometry }) {
  *  - routeGeometry: [[lat, lng], ...] — polyline from route service
  *  - onMapReady: () => void
  */
+// Mumbai fallback (MargDarshak is Mumbai-focused)
+const MUMBAI_DEFAULT = { lat: 19.076, lng: 72.8777 };
+
 export default function MapView({ userLocation, markers = [], routeGeometry = [], onMapReady }) {
-    const center = userLocation || { lat: 28.6139, lng: 77.209 };
+    const center = userLocation || MUMBAI_DEFAULT;
 
     return (
         <div style={{ marginTop: 32 }}>
@@ -144,8 +147,8 @@ export default function MapView({ userLocation, markers = [], routeGeometry = []
                         url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
                     />
 
-                    {/* Recenter on user location */}
-                    <RecenterMap lat={center.lat} lng={center.lng} />
+                    {/* Recenter when real user location arrives */}
+                    <RecenterMap userLocation={userLocation} />
 
                     {/* Fit bounds when AI markers or route arrive */}
                     <FitMarkers markers={markers} userLocation={userLocation} routeGeometry={routeGeometry} />
