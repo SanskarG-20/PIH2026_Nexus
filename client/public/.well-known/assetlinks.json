@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.margdarshak.app",
+      "sha256_cert_fingerprints": [
+        "65:65:CB:53:76:44:72:E8:98:FD:69:DA:2B:F5:4C:75:55:F0:25:F8:96:1F:B9:22:91:F1:13:1C:A1:F0:24:83"
+      ]
+    }
+  }
+]
