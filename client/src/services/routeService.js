@@ -8,6 +8,7 @@
 
 import { evaluateMetro } from "./metroService.js";
 import { evaluateBus } from "./busService.js";
+import { evaluateTrain } from "./trainService.js";
 import { attachSafetyToModes } from "./safetyService.js";
 import { attachEcoScores } from "./ecoScoreService.js";
 import { cacheRoute, getCachedRoute, setOfflineFlag } from "../utils/offlineCache.js";
@@ -180,6 +181,16 @@ export async function compareRoutes(startLat, startLng, endLat, endLng) {
         console.warn("[MargDarshak Route] Metro evaluation failed:", err);
     }
 
+    // Evaluate local train option (Mumbai Western/Central/Harbour)
+    try {
+        const train = evaluateTrain(startLat, startLng, endLat, endLng);
+        if (train) {
+            modes.push(train);
+        }
+    } catch (err) {
+        console.warn("[MargDarshak Route] Train evaluation failed:", err);
+    }
+
     // Evaluate bus option (replaces generic transit)
     try {
         const bus = evaluateBus(startLat, startLng, endLat, endLng, distanceKm);
@@ -225,8 +236,8 @@ export async function compareRoutes(startLat, startLng, endLat, endLng) {
     modes.forEach(function(m) {
         if (m.mode === "walk" && distanceKm > 2) return;
         var score = m.costAmount + m.durationSec / 60;
-        // Metro bonus: prefer metro for medium distances (5-25 km)
-        if (m.mode === "metro" && distanceKm >= 5 && distanceKm <= 25) {
+        // Metro / Train bonus: prefer public transit for medium distances (5-25 km)
+        if ((m.mode === "metro" || m.mode === "train") && distanceKm >= 5 && distanceKm <= 25) {
             score -= 5;
         }
         if (score < bestScore) {

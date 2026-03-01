@@ -36,6 +36,14 @@ function ModeIcon({ mode, size = 20, color = WH }) {
             <circle cx="12" cy="12" r="2.5" fill={color} stroke="none" />
         </svg>
     );
+    if (mode === "train") return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="4" y="3" width="16" height="14" rx="2" />
+            <path d="M4 10h16" />
+            <path d="M9 21l-2-4" /><path d="M15 21l2-4" />
+            <circle cx="9" cy="14" r="1" fill={color} /><circle cx="15" cy="14" r="1" fill={color} />
+        </svg>
+    );
     return null;
 }
 
@@ -322,6 +330,50 @@ export default function RoutePanel({ userLocation, markers = [], onRouteCalculat
                                     </div>
                                     <div style={{ display: "flex", gap: 12, flexWrap: "wrap", fontSize: 11, color: "rgba(255,255,255,.35)" }}>
                                         <span>{route.stationCount} stations</span>
+                                        {route.walkToStation && (
+                                            <span>Walk to station: {route.walkToStation}</span>
+                                        )}
+                                        {route.walkFromStation && (
+                                            <span>Walk from station: {route.walkFromStation}</span>
+                                        )}
+                                    </div>
+                                    {route.peakWarning && (
+                                        <div style={{ fontSize: 11, color: "#f59e0b", marginTop: 2 }}>
+                                            {"\u25B2"} {route.peakWarning}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Local Train details */}
+                            {route.mode === "train" && route.boarding && route.alighting && (
+                                <div style={{
+                                    marginTop: 8,
+                                    padding: "8px 12px",
+                                    background: "rgba(255,255,255,.02)",
+                                    border: "1px solid rgba(255,255,255,.06)",
+                                    fontSize: 12,
+                                    fontFamily: "'DM Sans',sans-serif",
+                                    color: "rgba(255,255,255,.5)",
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: 4,
+                                }}>
+                                    <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+                                        <span style={{
+                                            width: 8, height: 8, borderRadius: "50%",
+                                            background: route.lineColor || "#1565c0",
+                                            display: "inline-block", flexShrink: 0,
+                                        }} />
+                                        <span>{route.boarding}</span>
+                                        <span style={{ color: "rgba(255,255,255,.25)" }}>→</span>
+                                        <span>{route.alighting}</span>
+                                    </div>
+                                    <div style={{ display: "flex", gap: 12, flexWrap: "wrap", fontSize: 11, color: "rgba(255,255,255,.35)" }}>
+                                        <span>{route.stationCount} stations</span>
+                                        {route.crowdLevel && (
+                                            <span>Crowd: <span style={{ color: route.crowdLevel === "packed" ? "#ef4444" : route.crowdLevel === "high" ? "#f97316" : route.crowdLevel === "moderate" ? "#eab308" : "#22c55e", textTransform: "uppercase", fontWeight: 600 }}>{route.crowdLevel}</span></span>
+                                        )}
                                         {route.walkToStation && (
                                             <span>Walk to station: {route.walkToStation}</span>
                                         )}
