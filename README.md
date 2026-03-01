@@ -170,7 +170,7 @@ After the best option is selected, a reasoning panel generates human-readable ex
 ### Dashboard UX
 - **Live Decision Mode**: 8-step animated AI reasoning sequence shown while the AI processes
 - **Staggered card reveal**: Transport cards animate in sequentially; best card glows
-- **Animated background**: CSS-only gradient, noise texture, floating orbs, scan line, grid overlay
+- **Animated background**: CSS-only gradient, noise texture, floating orbs, scan line, grid overlay (hidden on mobile for performance)
 - **6 status indicators**: AUTH, DATABASE, AI ENGINE, WEATHER, MAPS, ROUTES — live state
 - **Interactive map**: Leaflet.js dark tiles (CartoDB Dark Matter), user pin, place markers, route polyline
 - **Professional icon system**: All emoji/cartoonish icons replaced with geometric Unicode symbols:
@@ -178,11 +178,44 @@ After the best option is selected, a reasoning panel generates human-readable ex
   - Safety: ◉ | Eco: ◇ | Peak warning: ▲ | Save route: ☆
   - Transport modes: ■ ◆ ▣ ◈ ○ ▸
 
+### Mobile-First Responsive Design
+The entire UI is built mobile-first for 360px–430px phones while preserving the full desktop experience:
+
+| Layer | Approach |
+|---|---|
+| **Breakpoint** | Primary: 768px — all layouts adapt below this |
+| **Typography** | `clamp()` fluid scaling on all headlines, stats, and CTAs |
+| **Grids** | `repeat(auto-fit, minmax(…))` — columns collapse naturally with no media-query hacks |
+| **Touch targets** | Minimum 44px tap areas on all interactive elements |
+| **Navigation** | 3-bar hamburger → X close animation → fullscreen overlay menu on mobile |
+| **Performance** | Heavy BG effects (orbs, scan line, noise texture) hidden on mobile via CSS |
+| **Cursor** | Custom cursor hidden on touch devices via `@media (hover: none)` |
+| **Animations** | Reduced `transform` intensity (60–80px → 24px) on mobile for smoother rendering |
+| **Safe areas** | `env(safe-area-inset-bottom)` support for notched/gesture-nav devices |
+| **Touch feedback** | `[data-hover]:active` → subtle opacity + scale pulse on tap |
+| **Map** | Height scales from 280px to 400px via `clamp()` |
+
+**Components with specific mobile adaptations:**
+- Navbar: hamburger menu with fullscreen overlay, auto-close on resize
+- HeroSection: hidden VortexText/GridBackground, full-width CTA buttons, grid-based stats
+- StatsSection: 2-per-row grid on mobile (CSS class hook)
+- WorkSection / IntroSection / ContactSection: single-column auto-fit grids
+- Footer: stacked layout via CSS class hooks
+- DashboardPage: reduced padding, responsive status grid, safe-area bottom
+- AIChat / IntentInput: reduced button padding to prevent horizontal overflow
+- LocationBar: flex-based input width (no fixed pixels)
+- WeatherBadge: flex-wrap on PM2.5/PM10 row
+- RoutePanel: flex-wrap on station chains, reduced stat gaps
+- SmartSuggestions: flex-wrap on attraction/food rows
+- MapView: responsive height via `clamp(280px, 50vw, 400px)`
+- FeatureCard: reduced padding for tighter mobile cards
+
 ### Landing Page
 - **Auth-aware buttons**: "GET CONNECTED" and product preview cards detect Clerk auth state
 - **Accurate feature cards**: 8 feature cards reflecting only implemented capabilities (AI Chat, Live Location, Smart Transport, Weather + AQI, Safety Intelligence, SOS Emergency, Eco Travel Score, Offline Mode)
 - **Real metrics**: Stats section shows actual product stats (6 Transport Modes, 61 Safety Zones, 5 Live APIs, 100% Offline Ready)
 - **Updated skill tags**: "AI ENGINE +", "MULTI-MODAL +", "SAFETY + SOS +", "LIVE DATA +"
+- **Fully responsive**: All sections adapt to mobile viewports — stacked grids, fluid typography, touch-friendly CTAs
 
 ---
 
@@ -253,8 +286,9 @@ After the best option is selected, a reasoning panel generates human-readable ex
 | Routing distance | OpenRouteService | Free tier |
 | Icons | Lucide React | 0.575.0 |
 | Styling | CSS-in-JS (inline styles) + global CSS | — |
+| Responsive | CSS media queries + `clamp()` + `auto-fit` grids | 768px breakpoint |
 
-No Tailwind. All styles are hand-crafted inline or in `global.css` for full design control.
+No Tailwind. All styles are hand-crafted inline or in `global.css` for full design control. Responsive behaviour uses CSS media queries in `global.css` with className hooks on components, plus responsive inline styles (`clamp()`, `auto-fit` grids, `flexWrap`).
 
 ---
 
@@ -400,7 +434,7 @@ client/
     │   └── WorkSection.jsx          # Auth-aware product preview cards
     │
     └── styles/
-        └── global.css               # Dashboard animations, keyframes, dark theme
+        └── global.css               # Animations, keyframes, dark theme, responsive media queries
 ```
 
 ---
@@ -530,7 +564,7 @@ All tables have Row Level Security (RLS) enabled — users can only access their
 ## 14. Impact
 
 ### Innovation
-MargDarshak introduces five novel concepts to the Indian travel assistant space:
+MargDarshak introduces six novel concepts to the Indian travel assistant space:
 
 **1. Explainable AI for transport** — Most apps say *"take the metro."* MargDarshak says *"take the metro — it's 18 minutes faster, saves ₹150, and avoids peak-hour road congestion."* Every recommendation is justified.
 
@@ -542,8 +576,11 @@ MargDarshak introduces five novel concepts to the Indian travel assistant space:
 
 **5. One-tap SOS with AI guidance** — Emergency system with GPS fallback, reverse geocoding, audio alerts, and AI-powered contextual safety advice — all accessible from a single floating button.
 
+**6. Mobile-first responsive design without a CSS framework** — Every component adapts to 360px–430px phones using hand-crafted CSS media queries, `clamp()` fluid typography, `auto-fit` grids, and touch-optimised tap targets — no Tailwind, no Bootstrap, no framework overhead.
+
 ### Feasibility
 - **Fully functional today** — not a prototype. Every feature listed in this README is implemented and running.
+- **Fully responsive** — tested across 360px phones to 1440px desktops, no horizontal overflow, no broken layouts.
 - **All APIs are free-tier** — no infrastructure costs for MVP deployment.
 - **No ML training required** — intelligence comes from Groq's hosted LLM + deterministic service logic.
 - **Deployable in one click** — Vite + Vercel/Netlify compatible.
