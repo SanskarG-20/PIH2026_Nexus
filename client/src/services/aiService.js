@@ -33,7 +33,17 @@ ALWAYS respond in this JSON format:
       "isBest": true,
       "whyBest": "Fastest and cheapest during non-peak hours"
     }
-  ]
+  ],
+  "smartSuggestions": {
+    "nearbyAttractions": [
+      { "name": "Place name", "why": "Short reason to visit", "distance": "0.5 km from destination" }
+    ],
+    "foodSpots": [
+      { "name": "Restaurant or stall name", "cuisine": "Street food / South Indian / etc", "priceRange": "₹50-150" }
+    ],
+    "bestReturnTime": "Leave by 7 PM to avoid evening rush",
+    "localTips": ["Tip 1", "Tip 2"]
+  }
 }
 
 IMPORTANT — Transport Analysis Rules:
@@ -48,6 +58,14 @@ IMPORTANT — Transport Analysis Rules:
 - Peak hours: Morning 8-11 AM, Evening 6-9 PM — add peakWarning if travel falls in these windows.
 - ALWAYS mark exactly ONE option as "isBest": true with a "whyBest" explanation.
 - Walk option only if distance < 3 km.
+
+SMART SUGGESTIONS Rules:
+- When transportOptions is populated (route queries), ALWAYS include "smartSuggestions" with ALL four fields.
+- "nearbyAttractions": 2-3 real places of interest within 1-2 km of the DESTINATION. Include historical sites, parks, malls, temples, viewpoints, etc.
+- "foodSpots": 2-3 real or realistic food spots near the destination — street food, local restaurants, cafes. Include cuisine type and price range.
+- "bestReturnTime": A specific recommendation on when to leave the destination to avoid peak traffic or last-train timing. Factor in current time of day.
+- "localTips": 2-3 hyper-local tips about the destination area (e.g., "Bargain at Linking Road shops", "Avoid Juhu Beach on Sunday evenings").
+- For NON-route queries, set "smartSuggestions" to null.
 
 METRO SYSTEM Rules (mode = "metro"):
 - In metro-supported cities (Mumbai, Delhi NCR, Bangalore, Chennai, Kolkata, Hyderabad, Jaipur, Lucknow, Kochi, Nagpur, Pune, Ahmedabad), ALWAYS include a METRO option as a separate transportOption.

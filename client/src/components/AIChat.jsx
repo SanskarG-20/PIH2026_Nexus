@@ -5,6 +5,7 @@ import { saveAIHistory, getAIHistory, saveTrip } from "../services/supabaseClien
 import { classifyIntent, buildIntentPrompt } from "../services/intentClassifier";
 import { explainBestRoute } from "../services/explainRouteService";
 import WhyThisRoute from "./WhyThisRoute";
+import SmartSuggestions from "./SmartSuggestions";
 
 export default function AIChat({ dbUser, onAIResponse, userLocation, weatherContext, weather, pendingQuery }) {
     const [messages, setMessages] = useState([]);
@@ -557,6 +558,11 @@ function AIResponse({ msg, weather, dbUser }) {
             {/* Transport Options */}
             {data.transportOptions?.length > 0 && (
                 <TransportReveal options={data.transportOptions} weather={weather} dbUser={dbUser} />
+            )}
+
+            {/* Smart Suggestions — after route analysis */}
+            {data.transportOptions?.length > 0 && data.smartSuggestions && (
+                <SmartSuggestions suggestions={data.smartSuggestions} />
             )}
         </div>
     );
