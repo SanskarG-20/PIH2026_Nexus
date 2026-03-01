@@ -226,3 +226,66 @@ export async function saveEnvironmentLog({ userId, temperature, weather, weather
     }
     return data;
 }
+
+/* ── Saved Trips ─────────────────────────────── */
+
+/**
+ * Save a trip (source + destination + preferred mode).
+ */
+export async function saveTrip({ userId, source, destination, preferredMode }) {
+    if (!supabase) return null;
+
+    const { data, error } = await supabase
+        .from("saved_trips")
+        .insert({
+            user_id: userId,
+            source,
+            destination,
+            preferred_mode: preferredMode || null,
+        })
+        .select()
+        .single();
+
+    if (error) {
+        console.error("[MargDarshak] Save trip failed:", error.message);
+        return null;
+    }
+    return data;
+}
+
+/**
+ * Get all saved trips for a user, newest first.
+ */
+export async function getSavedTrips(userId) {
+    if (!supabase) return [];
+
+    const { data, error } = await supabase
+        .from("saved_trips")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
+
+    if (error) {
+        console.error("[MargDarshak] Fetch saved trips failed:", error.message);
+        return [];
+    }
+    return data || [];
+}
+
+/**
+ * Delete a saved trip by ID.
+ */
+export async function deleteSavedTrip(tripId) {
+    if (!supabase) return false;
+
+    const { error } = await supabase
+        .from("saved_trips")
+        .delete()
+        .eq("id", tripId);
+
+    if (error) {
+        console.error("[MargDarshak] Delete saved trip failed:", error.message);
+        return false;
+    }
+    return true;
+}

@@ -1,17 +1,18 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Y, BK, WH } from "../constants/theme";
 import { askMargDarshak } from "../services/aiService";
-import { saveAIHistory, getAIHistory } from "../services/supabaseClient";
+import { saveAIHistory, getAIHistory, saveTrip } from "../services/supabaseClient";
 import { classifyIntent, buildIntentPrompt } from "../services/intentClassifier";
 import { explainBestRoute } from "../services/explainRouteService";
 import WhyThisRoute from "./WhyThisRoute";
 
-export default function AIChat({ dbUser, onAIResponse, userLocation, weatherContext, weather }) {
+export default function AIChat({ dbUser, onAIResponse, userLocation, weatherContext, weather, pendingQuery }) {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
     const [historyLoaded, setHistoryLoaded] = useState(false);
     const chatEndRef = useRef(null);
+    const lastPendingRef = useRef(null);
 
     // Load previous chat history from Supabase on mount
     useEffect(() => {
@@ -45,6 +46,54 @@ export default function AIChat({ dbUser, onAIResponse, userLocation, weatherCont
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
+
+    // Auto-send when pendingQuery changes (saved route clicked)
+    useEffect(() => {
+        if (!pendingQuery || loading) return;
+        const key = pendingQuery.ts || pendingQuery;
+        if (key === lastPendingRef.current) return;
+        lastPendingRef.current = key;
+        sendQuery(pendingQuery.text || pendingQuery);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pendingQuery]);
+
+    const sendQuery = async (queryText) => {
+        const userMsg = queryText.trim();
+        if (!userMsg) return;
+
+        const intents = classifyIntent(userMsg);
+        const primaryIntent = intents.length > 0 && intents[0].confidence >= 0.2 ? intents[0] : null;
+        const intentPrompt = buildIntentPrompt(userMsg);
+
+        setMessages((prev) => [
+            ...prev,
+            { role: "user", content: userMsg, detectedIntent: primaryIntent },
+        ]);
+        setLoading(true);
+
+        const result = await askMargDarshak(userMsg, messages, userLocation, weatherContext, intentPrompt);
+        const aiContent = result.error
+            ? result.summary
+            : JSON.stringify(result);
+
+        setMessages((prev) => [
+            ...prev,
+            { role: "assistant", content: aiContent, parsed: result },
+        ]);
+        setLoading(false);
+
+        if (!result.error) {
+            onAIResponse?.(result);
+        }
+
+        if (dbUser?.id && !result.error) {
+            saveAIHistory({
+                userId: dbUser.id,
+                prompt: userMsg,
+                response: aiContent,
+            });
+        }
+    };
 
     const handleSend = async (e) => {
         e.preventDefault();
@@ -223,7 +272,7 @@ export default function AIChat({ dbUser, onAIResponse, userLocation, weatherCont
                                 </div>
                             </div>
                         ) : (
-                            <AIResponse msg={msg} weather={weather} />
+                            <AIResponse msg={msg} weather={weather} dbUser={dbUser} />
                         )}
                     </div>
                 ))}
@@ -283,7 +332,7 @@ export default function AIChat({ dbUser, onAIResponse, userLocation, weatherCont
     );
 }
 
-function AIResponse({ msg, weather }) {
+function AIResponse({ msg, weather, dbUser }) {
     const data = msg.parsed;
 
     if (!data || data.error) {
@@ -507,7 +556,7 @@ function AIResponse({ msg, weather }) {
 
             {/* Transport Options */}
             {data.transportOptions?.length > 0 && (
-                <TransportReveal options={data.transportOptions} weather={weather} />
+                <TransportReveal options={data.transportOptions} weather={weather} dbUser={dbUser} />
             )}
         </div>
     );
@@ -653,9 +702,11 @@ function LiveDecisionSteps() {
 
 /* ── Transport Reveal (staggered + glow) ──────── */
 
-function TransportReveal({ options, weather }) {
+function TransportReveal({ options, weather, dbUser }) {
     const [revealCount, setRevealCount] = useState(0);
     const [glowBest, setGlowBest] = useState(false);
+    const [saved, setSaved] = useState(false);
+    const [saving, setSaving] = useState(false);
 
     useEffect(() => {
         let count = 0;
@@ -713,11 +764,33 @@ function TransportReveal({ options, weather }) {
                 })}
             </div>
 
-            {/* Decision summary + WhyThisRoute after all revealed */}
+            {/* Decision summary + WhyThisRoute + Save Route after all revealed */}
             {glowBest && (() => {
                 const best = options.find((o) => o.isBest);
                 if (!best) return null;
                 const explanation = explainBestRoute(best, options, weather);
+
+                // Extract source/destination from the best option or first option with route info
+                const routeOpt = options.find((o) => o.boarding && o.destination && o.boarding !== o.destination) || best;
+                const source = routeOpt.boarding || "";
+                const dest = routeOpt.destination || "";
+
+                const handleSaveRoute = async () => {
+                    if (!dbUser?.id || !source || !dest || saved || saving) return;
+                    setSaving(true);
+                    const result = await saveTrip({
+                        userId: dbUser.id,
+                        source,
+                        destination: dest,
+                        preferredMode: best.mode || null,
+                    });
+                    setSaving(false);
+                    if (result) {
+                        setSaved(true);
+                        window.dispatchEvent(new Event("savedtrips:refresh"));
+                    }
+                };
+
                 return (
                     <>
                         <div style={{
@@ -726,23 +799,52 @@ function TransportReveal({ options, weather }) {
                             background: "rgba(204,255,0,.04)",
                             borderLeft: `3px solid ${Y}`,
                             animation: "ldm-step-in 0.4s ease both",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            flexWrap: "wrap",
+                            gap: 8,
                         }}>
-                            <span style={{
-                                fontFamily: "'Bebas Neue',sans-serif",
-                                fontSize: 11,
-                                letterSpacing: 2,
-                                color: Y,
-                            }}>
-                                AI RECOMMENDATION
-                            </span>
-                            <span style={{
-                                fontFamily: "'DM Sans',sans-serif",
-                                fontSize: 12,
-                                color: "rgba(255,255,255,.6)",
-                                marginLeft: 8,
-                            }}>
-                                {best.whyBest || `${best.label || best.mode} is the best option`}
-                            </span>
+                            <div>
+                                <span style={{
+                                    fontFamily: "'Bebas Neue',sans-serif",
+                                    fontSize: 11,
+                                    letterSpacing: 2,
+                                    color: Y,
+                                }}>
+                                    AI RECOMMENDATION
+                                </span>
+                                <span style={{
+                                    fontFamily: "'DM Sans',sans-serif",
+                                    fontSize: 12,
+                                    color: "rgba(255,255,255,.6)",
+                                    marginLeft: 8,
+                                }}>
+                                    {best.whyBest || `${best.label || best.mode} is the best option`}
+                                </span>
+                            </div>
+                            {source && dest && dbUser?.id && (
+                                <button
+                                    onClick={handleSaveRoute}
+                                    disabled={saved || saving}
+                                    data-hover
+                                    style={{
+                                        padding: "4px 12px",
+                                        fontFamily: "'Bebas Neue',sans-serif",
+                                        fontSize: 11,
+                                        letterSpacing: 1.5,
+                                        color: saved ? BK : Y,
+                                        background: saved ? Y : "transparent",
+                                        border: `1px solid ${Y}`,
+                                        cursor: saved ? "default" : "pointer",
+                                        transition: "all .15s",
+                                        whiteSpace: "nowrap",
+                                        flexShrink: 0,
+                                    }}
+                                >
+                                    {saving ? "..." : saved ? "✓ SAVED" : "⭐ SAVE ROUTE"}
+                                </button>
+                            )}
                         </div>
                         <WhyThisRoute reasons={explanation.reasons} />
                     </>

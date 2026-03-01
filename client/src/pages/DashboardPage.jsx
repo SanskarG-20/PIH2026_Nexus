@@ -12,6 +12,7 @@ import LocationBar from "../components/LocationBar";
 import WeatherBadge from "../components/WeatherBadge";
 import IntentInput from "../components/IntentInput";
 import AIChat from "../components/AIChat";
+import SavedRoutes from "../components/SavedRoutes";
 import MapView from "../components/MapView";
 import RoutePanel from "../components/RoutePanel";
 
@@ -26,6 +27,7 @@ export default function DashboardPage() {
     const [weatherLoading, setWeatherLoading] = useState(false);
     const [routeGeometry, setRouteGeometry] = useState([]);
     const [routeActive, setRouteActive] = useState(false);
+    const [pendingQuery, setPendingQuery] = useState(null);
 
     // Save location to Supabase whenever it changes
     useEffect(() => {
@@ -76,6 +78,10 @@ export default function DashboardPage() {
 
     // Build weather context string for AI
     const weatherCtx = useMemo(() => buildWeatherContext(weather), [weather]);
+
+    const handleSavedRouteSelect = useCallback((source, destination) => {
+        setPendingQuery({ text: `Best route from ${source} to ${destination}`, ts: Date.now() });
+    }, []);
 
     const handleAIResponse = useCallback((parsedResult) => {
         setAiActive(true);
@@ -352,6 +358,12 @@ export default function DashboardPage() {
                 {/* Intent Input */}
                 <IntentInput dbUser={dbUser} />
 
+                {/* Saved Routes */}
+                <SavedRoutes
+                    dbUser={dbUser}
+                    onSelectRoute={handleSavedRouteSelect}
+                />
+
                 {/* AI Chat */}
                 <AIChat
                     dbUser={dbUser}
@@ -359,6 +371,7 @@ export default function DashboardPage() {
                     userLocation={aiLocationContext}
                     weatherContext={weatherCtx}
                     weather={weather}
+                    pendingQuery={pendingQuery}
                 />
 
                 {/* Map */}

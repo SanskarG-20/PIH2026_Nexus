@@ -79,6 +79,17 @@ create table if not exists environment_logs (
 );
 create index if not exists idx_env_logs_user_id on environment_logs (user_id);
 
+-- 6. SAVED TRIPS
+create table if not exists saved_trips (
+  id              uuid default gen_random_uuid() primary key,
+  user_id         uuid references users(id) on delete cascade not null,
+  source          text not null,
+  destination     text not null,
+  preferred_mode  text,
+  created_at      timestamptz default now()
+);
+create index if not exists idx_saved_trips_user_id on saved_trips (user_id);
+
 -- ============================================================
 -- RLS (drop + recreate to be safe on re-runs)
 -- ============================================================
@@ -88,6 +99,7 @@ alter table trips enable row level security;
 alter table ai_history enable row level security;
 alter table intents enable row level security;
 alter table environment_logs enable row level security;
+alter table saved_trips enable row level security;
 
 -- Users
 drop policy if exists "Users can read own data" on users;
@@ -124,3 +136,11 @@ drop policy if exists "Users can read own env_logs" on environment_logs;
 drop policy if exists "Users can insert own env_logs" on environment_logs;
 create policy "Users can read own env_logs" on environment_logs for select using (user_id in (select id from users));
 create policy "Users can insert own env_logs" on environment_logs for insert with check (user_id in (select id from users));
+
+-- Saved Trips
+drop policy if exists "Users can read own saved_trips" on saved_trips;
+drop policy if exists "Users can insert own saved_trips" on saved_trips;
+drop policy if exists "Users can delete own saved_trips" on saved_trips;
+create policy "Users can read own saved_trips" on saved_trips for select using (user_id in (select id from users));
+create policy "Users can insert own saved_trips" on saved_trips for insert with check (user_id in (select id from users));
+create policy "Users can delete own saved_trips" on saved_trips for delete using (user_id in (select id from users));
