@@ -1059,7 +1059,38 @@ function TransportCard({ opt, glowing }) {
                         }
                     />
                 )}
+                {opt.ecoScore != null && (
+                    <TransportStat
+                        label={"\uD83C\uDF3F ECO"}
+                        value={opt.ecoScore + "%"}
+                        color={
+                            opt.ecoScore >= 80 ? "#22c55e" :
+                            opt.ecoScore >= 50 ? "#06b6d4" :
+                            opt.ecoScore > 0  ? "#eab308" :
+                            "rgba(255,255,255,.3)"
+                        }
+                    />
+                )}
             </div>
+
+            {/* Eco savings */}
+            {opt.ecoSavingsPercent > 0 && opt.co2Grams != null && (
+                <div style={{
+                    fontFamily: "'DM Sans',sans-serif",
+                    fontSize: 11,
+                    color: opt.ecoScore >= 80 ? "#22c55e" : "#06b6d4",
+                    padding: "4px 8px",
+                    background: opt.ecoScore >= 80
+                        ? "rgba(34,197,94,.06)"
+                        : "rgba(6,182,212,.06)",
+                    border: opt.ecoScore >= 80
+                        ? "1px solid rgba(34,197,94,.12)"
+                        : "1px solid rgba(6,182,212,.12)",
+                    marginBottom: opt.peakWarning || opt.safetyReasoning || opt.whyBest ? 6 : 0,
+                }}>
+                    {"\uD83C\uDF3F"} {opt.ecoSavingsPercent}% less CO\u2082 vs cab ({opt.co2Grams}g vs {Math.round(opt.co2Grams / (1 - opt.ecoSavingsPercent / 100))}g)
+                </div>
+            )}
 
             {/* Peak warning */}
             {opt.peakWarning && (

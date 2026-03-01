@@ -9,6 +9,7 @@
 import { evaluateMetro } from "./metroService.js";
 import { evaluateBus } from "./busService.js";
 import { attachSafetyToModes } from "./safetyService.js";
+import { attachEcoScores } from "./ecoScoreService.js";
 import { cacheRoute, getCachedRoute, setOfflineFlag } from "../utils/offlineCache.js";
 
 const ORS_API_KEY = import.meta.env.VITE_ORS_API_KEY;
@@ -252,6 +253,13 @@ export async function compareRoutes(startLat, startLng, endLat, endLng) {
         attachSafetyToModes(modes, startLat, startLng, endLat, endLng);
     } catch (err) {
         console.warn("[MargDarshak Route] Safety evaluation failed:", err);
+    }
+
+    // Attach eco travel scores to each mode
+    try {
+        attachEcoScores(modes, distanceKm);
+    } catch (err) {
+        console.warn("[MargDarshak Route] Eco score evaluation failed:", err);
     }
 
     const result = { modes: modes, distanceKm: distanceKm, usingFallback: usingFallback, error: false };
