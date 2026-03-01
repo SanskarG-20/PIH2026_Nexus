@@ -1,9 +1,13 @@
+import { useNavigate } from "react-router-dom";
+import { useClerkAvailable } from "../hooks/useClerkAvailable";
 import useInView from "../hooks/useInView";
 import { Y, BK, WH } from "../constants/theme";
 import { Map, BrainCircuit, Bus, ShieldCheck } from "lucide-react";
 
 export default function WorkSection() {
   const [ref, vis] = useInView();
+  const navigate = useNavigate();
+  const clerkAvailable = useClerkAvailable();
 
   const screens = [
     {
@@ -66,6 +70,10 @@ export default function WorkSection() {
           {screens.map((s, i) => (
             <div
               key={i}
+              onClick={() => {
+                const authed = clerkAvailable && window.Clerk?.user;
+                navigate(authed ? "/app" : "/sign-in");
+              }}
               style={{
                 background: s.bg,
                 padding: "48px 36px",

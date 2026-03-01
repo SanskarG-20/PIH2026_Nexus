@@ -1,10 +1,11 @@
 import { SignedIn, SignedOut, UserButton } from "@clerk/clerk-react";
+import { useNavigate } from "react-router-dom";
 import { Y, BK } from "../constants/theme";
 
-function LoginButton({ scrolled, onLogin }) {
+function NavBtn({ scrolled, label, onClick }) {
     return (
         <button
-            onClick={onLogin}
+            onClick={onClick}
             data-hover
             style={{
                 background: "transparent",
@@ -26,15 +27,22 @@ function LoginButton({ scrolled, onLogin }) {
                 e.target.style.color = scrolled ? Y : BK;
             }}
         >
-            LOGIN
+            {label}
         </button>
     );
 }
 
 export default function NavAuthButtons({ scrolled, onLogin }) {
+    const navigate = useNavigate();
+
     return (
         <>
             <SignedIn>
+                <NavBtn
+                    scrolled={scrolled}
+                    label="DASHBOARD"
+                    onClick={() => navigate("/app")}
+                />
                 <UserButton
                     afterSignOutUrl="/"
                     appearance={{
@@ -45,7 +53,7 @@ export default function NavAuthButtons({ scrolled, onLogin }) {
                 />
             </SignedIn>
             <SignedOut>
-                <LoginButton scrolled={scrolled} onLogin={onLogin} />
+                <NavBtn scrolled={scrolled} label="LOGIN" onClick={onLogin} />
             </SignedOut>
         </>
     );

@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useClerkAvailable } from "../hooks/useClerkAvailable";
 import { Y, BK, WH } from "../constants/theme";
 import {
   MapPin,
@@ -145,6 +147,8 @@ function GridBackground() {
 
 /* ── HERO SECTION ────────────────────────────────────────────────────────── */
 export default function HeroSection() {
+  const navigate = useNavigate();
+  const clerkAvailable = useClerkAvailable();
   const [typed, setTyped] = useState("");
   const words = ["PLAN.", "NAVIGATE.", "EXPLORE.", "ARRIVE."];
   const [wIdx, setWIdx] = useState(0);
@@ -375,6 +379,11 @@ export default function HeroSection() {
           <a
             href="#contact"
             data-hover
+            onClick={(e) => {
+              e.preventDefault();
+              const authed = clerkAvailable && window.Clerk?.user;
+              navigate(authed ? "/app" : "/sign-in");
+            }}
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -389,6 +398,7 @@ export default function HeroSection() {
               textDecoration: "none",
               transition: "transform .15s",
               boxShadow: "5px 5px 0 #000",
+              cursor: "pointer",
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = "translate(-3px,-3px)";

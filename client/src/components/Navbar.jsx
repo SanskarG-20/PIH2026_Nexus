@@ -5,7 +5,7 @@ import { useClerkAvailable } from "../hooks/useClerkAvailable";
 
 const NavAuthButtons = lazy(() => import("./NavAuthButtons"));
 
-function LoginButton({ scrolled, onLogin }) {
+function FallbackLoginButton({ scrolled, onLogin }) {
   return (
     <button
       onClick={onLogin}
@@ -128,11 +128,11 @@ export default function Navbar() {
 
       <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
         {clerkAvailable ? (
-          <Suspense fallback={<LoginButton scrolled={scrolled} onLogin={handleLogin} />}>
+          <Suspense fallback={<FallbackLoginButton scrolled={scrolled} onLogin={handleLogin} />}>
             <NavAuthButtons scrolled={scrolled} onLogin={handleLogin} />
           </Suspense>
         ) : (
-          <LoginButton scrolled={scrolled} onLogin={handleLogin} />
+          <FallbackLoginButton scrolled={scrolled} onLogin={handleLogin} />
         )}
 
         {/* Hamburger menu */}
