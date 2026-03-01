@@ -73,10 +73,10 @@ export default function StatsSection() {
   const [ref, vis] = useInView(0.3);
 
   const stats = [
-    { num: 23, suffix: "+", label: "AI Modules", d: 0 },
-    { num: 6, suffix: "", label: "Live APIs", d: 0.1 },
-    { num: 100, suffix: "%", label: "Real-Time Intelligence", d: 0.2 },
-    { num: 10, suffix: "+", label: "Indian Cities", d: 0.3 },
+    { num: 6, suffix: "", label: "Transport Modes", d: 0 },
+    { num: 61, suffix: "", label: "Safety Zones", d: 0.1 },
+    { num: 5, suffix: "", label: "Live APIs", d: 0.2 },
+    { num: 100, suffix: "%", label: "Offline Ready", d: 0.3 },
   ];
 
   return (

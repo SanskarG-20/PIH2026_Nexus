@@ -330,8 +330,9 @@ export default function HeroSection() {
           }}
         >
           MargDarshak converts travel uncertainty into confident, safe, and
-          intelligent real-time decisions using AI. Built for India, built for
-          you.®
+          intelligent real-time decisions. AI-powered transport comparison,
+          safety scoring, weather-aware routing, and SOS emergency — built
+          for India.®
         </p>
 
         {/* CTAs */}
@@ -423,10 +424,10 @@ export default function HeroSection() {
             }}
           >
             {[
-              ["23+", "AI Features"],
+              ["5+", "Transport Modes"],
               ["6", "Live APIs"],
-              ["94%", "Accuracy"],
-              ["₹0", "Walk Option"],
+              ["10", "Safety Zones"],
+              ["<1s", "SOS Response"],
             ].map(([num, lbl]) => (
               <div key={lbl}>
                 <div

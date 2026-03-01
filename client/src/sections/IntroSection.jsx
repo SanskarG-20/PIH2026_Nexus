@@ -120,10 +120,10 @@ export default function IntroSection() {
         {/* Right: skill tags */}
         <div ref={ref2} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {[
-            { Icon: BrainCircuit, badge: "LOGO +", label: "Intent-Based AI Planning" },
-            { Icon: Rocket, badge: "BRAND IDENTITY +", label: "Real-Time Route Optimization" },
-            { Icon: ShieldCheck, badge: "WEB DESIGN +", label: "Women & Solo Safety Mode" },
-            { Icon: Thermometer, badge: "PRODUCT +", label: "AQI + Weather Intelligence" },
+            { Icon: BrainCircuit, badge: "AI ENGINE +", label: "Intent-Based AI Planning" },
+            { Icon: Rocket, badge: "MULTI-MODAL +", label: "Real-Time Route Optimization" },
+            { Icon: ShieldCheck, badge: "SAFETY + SOS +", label: "61-Zone Safety Intelligence" },
+            { Icon: Thermometer, badge: "LIVE DATA +", label: "AQI + Weather Intelligence" },
           ].map(({ Icon, badge, label }, i) => (
             <div
               key={i}

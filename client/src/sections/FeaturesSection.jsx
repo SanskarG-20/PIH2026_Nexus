@@ -7,9 +7,9 @@ import {
   Bus,
   CloudRain,
   ShieldCheck,
-  Wallet,
+  AlertTriangle,
   Leaf,
-  Languages,
+  WifiOff,
   Rocket,
 } from "lucide-react";
 
@@ -17,49 +17,49 @@ const FEATURES = [
   {
     Icon: BrainCircuit,
     title: "AI CHAT ASSISTANT",
-    desc: "Describe your goal — 'I want sunset views under ₹500 in 2 hrs' — and get a full itinerary instantly.",
+    desc: "Describe your intent — 'rainy day date under ₹500' — and get multi-modal routes, safety scores, and smart suggestions instantly.",
     color: Y,
   },
   {
     Icon: MapPin,
-    title: "LIVE GPS TRACKING",
-    desc: "Real-time location awareness with movement-based dynamic recommendations as you travel.",
+    title: "LIVE LOCATION",
+    desc: "GPS-based origin detection with reverse geocoding. Your current position feeds directly into route and safety analysis.",
     color: WH,
   },
   {
     Icon: Bus,
     title: "SMART TRANSPORT",
-    desc: "Compare Walk · Bus · Auto · Cab on cost, comfort, time & carbon footprint. AI picks the best.",
+    desc: "Compare Walk · Metro · Train · Bus · Auto · Cab on cost, duration, and CO₂ — with eco scores per mode.",
     color: Y,
   },
   {
     Icon: CloudRain,
     title: "WEATHER + AQI",
-    desc: "Real-time air quality index and rain alerts. We suggest activities based on current conditions.",
+    desc: "Real-time air quality index and weather conditions. Route suggestions adapt to rain, heat, and pollution levels.",
     color: WH,
   },
   {
     Icon: ShieldCheck,
-    title: "WOMEN SAFETY MODE",
-    desc: "Well-lit route prioritization, unsafe area alerts, and one-tap SOS emergency sharing.",
+    title: "SAFETY INTELLIGENCE",
+    desc: "61 mapped safety zones with real-time scoring, night-awareness alerts, and explainable AI route reasoning.",
     color: Y,
   },
   {
-    Icon: Wallet,
-    title: "BUDGET ASSISTANT",
-    desc: "Estimated trip cost, ₹-friendly alternatives, and live expense comparisons.",
+    Icon: AlertTriangle,
+    title: "SOS EMERGENCY",
+    desc: "One-tap SOS with GPS coordinates, reverse-geocoded address, emergency call (112), and audio alert — works offline.",
     color: WH,
   },
   {
     Icon: Leaf,
     title: "ECO TRAVEL SCORE",
-    desc: "Carbon footprint per journey. Sustainable route suggestions for the conscious traveler.",
+    desc: "Per-mode CO₂ emissions (g/km), green badges for low-carbon options, and savings vs. cab comparison.",
     color: Y,
   },
   {
-    Icon: Languages,
-    title: "LANGUAGE HELPER",
-    desc: "Hindi, Marathi, local phrases with translations to communicate with locals confidently.",
+    Icon: WifiOff,
+    title: "OFFLINE MODE",
+    desc: "Cached AI responses, weather data, and route intel with automatic TTL. Travel confidently without connectivity.",
     color: WH,
   },
 ];
@@ -169,7 +169,7 @@ export default function FeaturesSection() {
                 lineHeight: 1.6,
               }}
             >
-              23+ features engineered for the modern Indian traveler.
+              10+ modules engineered for the modern Indian traveler.
             </div>
           </div>
         </div>
