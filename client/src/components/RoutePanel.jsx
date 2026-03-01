@@ -260,7 +260,35 @@ export default function RoutePanel({ userLocation, markers = [], onRouteCalculat
                                         highlight={false}
                                     />
                                 )}
+                                {route.ecoScore != null && (
+                                    <StatItem
+                                        label="ECO"
+                                        value={route.ecoScore + "%"}
+                                        highlight={false}
+                                        color={
+                                            route.ecoScore >= 80 ? "#22c55e" :
+                                            route.ecoScore >= 50 ? "#06b6d4" :
+                                            route.ecoScore > 0  ? "#eab308" :
+                                            "rgba(255,255,255,.3)"
+                                        }
+                                    />
+                                )}
                             </div>
+
+                            {/* Eco savings bar */}
+                            {route.ecoSavingsPercent > 0 && route.co2Grams != null && (
+                                <div style={{
+                                    marginTop: 8,
+                                    fontFamily: "'DM Sans',sans-serif",
+                                    fontSize: 11,
+                                    color: route.ecoScore >= 80 ? "#22c55e" : "#06b6d4",
+                                    padding: "4px 10px",
+                                    background: route.ecoScore >= 80 ? "rgba(34,197,94,.06)" : "rgba(6,182,212,.06)",
+                                    border: route.ecoScore >= 80 ? "1px solid rgba(34,197,94,.15)" : "1px solid rgba(6,182,212,.15)",
+                                }}>
+                                    {"\uD83C\uDF3F"} {route.ecoSavingsPercent}% less CO{"\u2082"} vs cab {"\u2002\u00B7\u2002"}{route.co2Grams}g vs {Math.round(route.co2Grams / (1 - route.ecoSavingsPercent / 100))}g
+                                </div>
+                            )}
 
                             {/* Metro details */}
                             {route.mode === "metro" && (

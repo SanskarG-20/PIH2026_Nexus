@@ -4,6 +4,7 @@ import { askMargDarshak } from "../services/aiService";
 import { saveAIHistory, getAIHistory, saveTrip } from "../services/supabaseClient";
 import { classifyIntent, buildIntentPrompt } from "../services/intentClassifier";
 import { explainBestRoute } from "../services/explainRouteService";
+import { calculateEcoScore } from "../services/ecoScoreService";
 import WhyThisRoute from "./WhyThisRoute";
 import SmartSuggestions from "./SmartSuggestions";
 
@@ -708,15 +709,47 @@ function LiveDecisionSteps() {
 
 /* ── Transport Reveal (staggered + glow) ──────── */
 
+/** Parse AI duration string ("25 min" / "1h 30m" / "2h") → km estimate using mode avg speed */
+const MODE_SPEED_KMPH = { walk: 5, metro: 35, train: 40, bus: 20, transit: 20, cab: 25, auto: 20 };
+function estimateDistanceFromDuration(durationStr, mode) {
+    if (!durationStr) return null;
+    let mins = 0;
+    const h = durationStr.match(/(\d+)\s*h/);
+    const m = durationStr.match(/(\d+)\s*m/);
+    if (h) mins += parseInt(h[1]) * 60;
+    if (m) mins += parseInt(m[1]);
+    if (!h && !m) {
+        const plain = parseInt(durationStr);
+        if (!isNaN(plain)) mins = plain;
+    }
+    if (mins <= 0) return null;
+    const speed = MODE_SPEED_KMPH[mode] || 25;
+    return (mins / 60) * speed;
+}
+
+/** Attach eco scores to AI-returned transport options (mutates in-place) */
+function enrichWithEco(options) {
+    return options.map(function(opt) {
+        if (opt.ecoScore != null) return opt;         // already has eco data
+        const dist = estimateDistanceFromDuration(opt.duration, opt.mode);
+        if (!dist) return opt;
+        const eco = calculateEcoScore(opt.mode, dist);
+        return { ...opt, co2Grams: eco.co2Grams, ecoScore: eco.ecoScore, ecoSavingsPercent: eco.savingsPercent, ecoLabel: eco.ecoLabel };
+    });
+}
+
 function TransportReveal({ options, weather, dbUser }) {
     const [revealCount, setRevealCount] = useState(0);
     const [glowBest, setGlowBest] = useState(false);
     const [saved, setSaved] = useState(false);
     const [saving, setSaving] = useState(false);
 
+    // Enrich AI options with eco scores estimated from duration
+    const enrichedOptions = enrichWithEco(options);
+
     useEffect(() => {
         let count = 0;
-        const total = options.length;
+        const total = enrichedOptions.length;
         const timers = [];
         setRevealCount(0);
         setGlowBest(false);
@@ -735,7 +768,7 @@ function TransportReveal({ options, weather, dbUser }) {
         timers.push(setTimeout(revealNext, 150));
 
         return () => timers.forEach(clearTimeout);
-    }, [options.length]);
+    }, [enrichedOptions.length]);
 
     return (
         <div style={{ marginTop: 16 }}>
@@ -751,7 +784,7 @@ function TransportReveal({ options, weather, dbUser }) {
                 TRANSPORT ANALYSIS
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {options.map((opt, i) => {
+                {enrichedOptions.map((opt, i) => {
                     if (i >= revealCount) return null;
                     const isGlowing = glowBest && opt.isBest;
                     return (
@@ -772,12 +805,12 @@ function TransportReveal({ options, weather, dbUser }) {
 
             {/* Decision summary + WhyThisRoute + Save Route after all revealed */}
             {glowBest && (() => {
-                const best = options.find((o) => o.isBest);
+                const best = enrichedOptions.find((o) => o.isBest);
                 if (!best) return null;
-                const explanation = explainBestRoute(best, options, weather);
+                const explanation = explainBestRoute(best, enrichedOptions, weather);
 
                 // Extract source/destination from the best option or first option with route info
-                const routeOpt = options.find((o) => o.boarding && o.destination && o.boarding !== o.destination) || best;
+                const routeOpt = enrichedOptions.find((o) => o.boarding && o.destination && o.boarding !== o.destination) || best;
                 const source = routeOpt.boarding || "";
                 const dest = routeOpt.destination || "";
 
@@ -1088,7 +1121,7 @@ function TransportCard({ opt, glowing }) {
                         : "1px solid rgba(6,182,212,.12)",
                     marginBottom: opt.peakWarning || opt.safetyReasoning || opt.whyBest ? 6 : 0,
                 }}>
-                    {"\uD83C\uDF3F"} {opt.ecoSavingsPercent}% less CO\u2082 vs cab ({opt.co2Grams}g vs {Math.round(opt.co2Grams / (1 - opt.ecoSavingsPercent / 100))}g)
+                    {"\uD83C\uDF3F"} {opt.ecoSavingsPercent}% less CO{"\u2082"} vs cab ({opt.co2Grams}g vs {Math.round(opt.co2Grams / (1 - opt.ecoSavingsPercent / 100))}g)
                 </div>
             )}
 
