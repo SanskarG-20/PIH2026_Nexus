@@ -368,7 +368,7 @@ export default function DashboardPage() {
                     <span style={{ color: "rgba(255,255,255,.2)" }}>.</span>
                 </h1>
 
-                {/* Dashboard placeholder */}
+                {/* Dashboard welcome */}
                 <div
                     style={{
                         border: `2px solid rgba(255,255,255,.1)`,
@@ -386,20 +386,31 @@ export default function DashboardPage() {
                             marginBottom: 12,
                         }}
                     >
-                        TRAVEL DASHBOARD
+                        WELCOME, {user?.firstName?.toUpperCase() || "TRAVELLER"}
                     </div>
                     <div
                         style={{
                             fontFamily: "'DM Sans',sans-serif",
-                            fontSize: 15,
-                            color: "rgba(255,255,255,.6)",
-                            lineHeight: 1.8,
+                            fontSize: 14,
+                            color: "rgba(255,255,255,.5)",
+                            lineHeight: 1.7,
+                            display: "flex",
+                            flexWrap: "wrap",
+                            gap: "6px 16px",
                         }}
                     >
-                        Your AI travel intelligence dashboard is being built.
-                        <br />
-                        Soon you'll see trip planning, weather alerts, route
-                        recommendations, and more — all powered by MargDarshak AI.
+                        {[
+                            { icon: "\u2728", text: "AI Travel Chat" },
+                            { icon: "\uD83D\uDCCD", text: "Live Location" },
+                            { icon: "\u26C5", text: "Weather & AQI" },
+                            { icon: "\uD83D\uDEE4\uFE0F", text: "Route Intelligence" },
+                            { icon: "\uD83D\uDDFA\uFE0F", text: "Interactive Maps" },
+                            { icon: "\uD83D\uDE82", text: "Local Train" },
+                        ].map((f) => (
+                            <span key={f.text} style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                                <span>{f.icon}</span> {f.text}
+                            </span>
+                        ))}
                     </div>
                 </div>
 
