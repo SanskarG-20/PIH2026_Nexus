@@ -153,7 +153,10 @@ export default function LocationBar({
                 style={{
                     display: "flex",
                     gap: 0,
-                    flexShrink: 0,
+                    flexShrink: 1,
+                    minWidth: 0,
+                    width: "100%",
+                    maxWidth: 280,
                 }}
             >
                 <input
@@ -175,7 +178,9 @@ export default function LocationBar({
                         }`,
                         borderRight: "none",
                         outline: "none",
-                        width: 160,
+                        width: "100%",
+                        flex: 1,
+                        minWidth: 0,
                         transition: "border-color .2s",
                     }}
                     onFocus={(e) =>

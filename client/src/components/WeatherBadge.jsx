@@ -135,8 +135,9 @@ export default function WeatherBadge({ weather, loading, city }) {
                         <div
                             style={{
                                 display: "flex",
-                                gap: 16,
+                                gap: 12,
                                 marginTop: 4,
+                                flexWrap: "wrap",
                             }}
                         >
                             {weather.pm25 != null && (
@@ -208,7 +209,7 @@ function StatItem({ label, value, highlight }) {
 const containerStyle = {
     border: "1px solid rgba(255,255,255,.08)",
     background: "rgba(255,255,255,.02)",
-    padding: "20px 24px",
+    padding: "16px 16px",
     marginBottom: 24,
 };
 
@@ -240,7 +241,7 @@ const mainRowStyle = {
 
 const statsGridStyle = {
     display: "flex",
-    gap: 20,
+    gap: 14,
     flexWrap: "wrap",
 };
 

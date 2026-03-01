@@ -171,7 +171,7 @@ export default function DashboardPage() {
             style={{
                 minHeight: "100vh",
                 background: BK,
-                padding: "100px 32px 60px",
+                padding: "80px 16px 60px",
             }}
         >
             <Cursor />
@@ -300,14 +300,14 @@ export default function DashboardPage() {
                 }}
             />
 
-            <div style={{ maxWidth: 800, margin: "0 auto", position: "relative", zIndex: 1 }}>
+            <div style={{ maxWidth: 800, margin: "0 auto", position: "relative", zIndex: 1, paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
                 {/* Header */}
                 <div
                     style={{
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
-                        marginBottom: 60,
+                        marginBottom: 40,
                     }}
                 >
                     <a
@@ -373,7 +373,7 @@ export default function DashboardPage() {
                     style={{
                         border: `2px solid rgba(255,255,255,.1)`,
                         borderLeft: `5px solid ${Y}`,
-                        padding: "32px 28px",
+                        padding: "24px 18px",
                         marginBottom: 24,
                     }}
                 >
@@ -460,8 +460,8 @@ export default function DashboardPage() {
                 <div
                     style={{
                         display: "grid",
-                        gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-                        gap: 12,
+                        gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+                        gap: 10,
                     }}
                 >
                     {[

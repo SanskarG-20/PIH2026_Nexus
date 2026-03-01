@@ -16,7 +16,7 @@ export default function IntroSection() {
       id="intro"
       style={{
         background: BK,
-        padding: "100px 32px",
+        padding: "80px 16px",
         position: "relative",
         overflow: "hidden",
       }}
@@ -42,8 +42,8 @@ export default function IntroSection() {
           maxWidth: 1200,
           margin: "0 auto",
           display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 80,
+          gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+          gap: "48px 80px",
           alignItems: "center",
         }}
       >

@@ -19,6 +19,7 @@ function VortexText() {
 
   return (
     <div
+      className="hero-vortex"
       style={{
         width: 280,
         height: 280,
@@ -108,6 +109,7 @@ function GridBackground() {
 
   return (
     <div
+      className="hero-grid-bg"
       style={{
         position: "absolute",
         inset: 0,
@@ -202,13 +204,14 @@ export default function HeroSection() {
 
       {/* BIG background text */}
       <div
+        className="hero-bg-text"
         style={{
           position: "absolute",
           top: "50%",
           left: "50%",
           transform: "translate(-50%,-50%)",
           fontFamily: "'Bebas Neue',sans-serif",
-          fontSize: "clamp(120px,20vw,240px)",
+          fontSize: "clamp(80px,20vw,240px)",
           color: "rgba(0,0,0,0.04)",
           whiteSpace: "nowrap",
           letterSpacing: -5,
@@ -228,7 +231,7 @@ export default function HeroSection() {
           zIndex: 5,
           maxWidth: 1200,
           margin: "0 auto",
-          padding: "80px 32px 60px",
+          padding: "60px 16px 40px",
           display: "flex",
           flexDirection: "column",
           gap: 0,
@@ -277,7 +280,7 @@ export default function HeroSection() {
         <h1
           style={{
             fontFamily: "'Bebas Neue',sans-serif",
-            fontSize: "clamp(72px,13vw,160px)",
+            fontSize: "clamp(52px,13vw,160px)",
             lineHeight: 0.88,
             letterSpacing: -2,
             color: BK,
@@ -324,11 +327,11 @@ export default function HeroSection() {
         <p
           style={{
             fontFamily: "'DM Sans',sans-serif",
-            fontSize: 18,
+            fontSize: "clamp(15px, 3.5vw, 18px)",
             fontWeight: 500,
             color: "#444",
             maxWidth: 520,
-            marginTop: 32,
+            marginTop: 24,
             lineHeight: 1.7,
             animation: "fade-up .6s .25s ease both",
           }}
@@ -343,8 +346,8 @@ export default function HeroSection() {
         <div
           style={{
             display: "flex",
-            gap: 16,
-            marginTop: 40,
+            gap: 12,
+            marginTop: 32,
             flexWrap: "wrap",
             animation: "fade-up .6s .35s ease both",
           }}
@@ -355,17 +358,21 @@ export default function HeroSection() {
             style={{
               display: "inline-flex",
               alignItems: "center",
+              justifyContent: "center",
               gap: 10,
               background: Y,
               color: BK,
               fontFamily: "'Bebas Neue',sans-serif",
-              fontSize: 22,
-              padding: "14px 36px",
+              fontSize: "clamp(18px,4vw,22px)",
+              padding: "14px 28px",
               letterSpacing: 3,
               border: `3px solid ${BK}`,
               textDecoration: "none",
               transition: "transform .15s",
               boxShadow: "5px 5px 0 #000",
+              flex: "1 1 auto",
+              minWidth: 180,
+              minHeight: 48,
             }}
             onMouseEnter={(e) =>
               (e.currentTarget.style.transform = "translate(-3px,-3px)")
@@ -387,18 +394,22 @@ export default function HeroSection() {
             style={{
               display: "inline-flex",
               alignItems: "center",
+              justifyContent: "center",
               gap: 10,
               background: WH,
               color: BK,
               fontFamily: "'Bebas Neue',sans-serif",
-              fontSize: 22,
-              padding: "14px 36px",
+              fontSize: "clamp(18px,4vw,22px)",
+              padding: "14px 28px",
               letterSpacing: 3,
               border: `3px solid ${BK}`,
               textDecoration: "none",
               transition: "transform .15s",
               boxShadow: "5px 5px 0 #000",
               cursor: "pointer",
+              flex: "1 1 auto",
+              minWidth: 180,
+              minHeight: 48,
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = "translate(-3px,-3px)";
@@ -420,16 +431,19 @@ export default function HeroSection() {
           style={{
             display: "flex",
             alignItems: "flex-end",
-            gap: 60,
-            marginTop: 80,
+            gap: 40,
+            marginTop: 60,
             flexWrap: "wrap",
           }}
         >
           <VortexText />
           <div
             style={{
-              display: "flex",
-              gap: 48,
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(80px, 1fr))",
+              gap: "24px 32px",
+              flex: 1,
+              minWidth: 0,
               animation: "fade-up .7s .5s ease both",
             }}
           >
@@ -443,7 +457,7 @@ export default function HeroSection() {
                 <div
                   style={{
                     fontFamily: "'Bebas Neue',sans-serif",
-                    fontSize: 56,
+                    fontSize: "clamp(36px,7vw,56px)",
                     color: BK,
                     lineHeight: 1,
                   }}
@@ -453,7 +467,7 @@ export default function HeroSection() {
                 <div
                   style={{
                     fontFamily: "'DM Sans',sans-serif",
-                    fontSize: 12,
+                    fontSize: 11,
                     fontWeight: 700,
                     color: "#666",
                     letterSpacing: 2,

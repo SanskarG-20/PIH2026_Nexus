@@ -78,6 +78,8 @@ export default function SmartSuggestions({ suggestions }) {
                                 display: "flex",
                                 justifyContent: "space-between",
                                 alignItems: "baseline",
+                                flexWrap: "wrap",
+                                gap: 4,
                                 padding: "4px 0",
                                 borderBottom: i < nearbyAttractions.length - 1 ? "1px solid rgba(255,255,255,.04)" : "none",
                             }}>
@@ -130,6 +132,8 @@ export default function SmartSuggestions({ suggestions }) {
                                 display: "flex",
                                 justifyContent: "space-between",
                                 alignItems: "baseline",
+                                flexWrap: "wrap",
+                                gap: 4,
                                 padding: "4px 0",
                                 borderBottom: i < foodSpots.length - 1 ? "1px solid rgba(255,255,255,.04)" : "none",
                             }}>

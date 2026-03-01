@@ -6,11 +6,12 @@ export default function Footer() {
       style={{
         background: BK,
         borderTop: `8px solid ${Y}`,
-        padding: "48px 32px 32px",
+        padding: "48px 16px 32px",
       }}
     >
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
         <div
+          className="footer-grid"
           style={{
             display: "grid",
             gridTemplateColumns: "1fr auto 1fr",
@@ -114,12 +115,15 @@ export default function Footer() {
         </div>
 
         <div
+          className="footer-bottom"
           style={{
             borderTop: "1px solid rgba(255,255,255,0.08)",
             paddingTop: 24,
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
+            flexWrap: "wrap",
+            gap: 12,
           }}
         >
           <span
@@ -132,6 +136,7 @@ export default function Footer() {
             © 2025 MargDarshak · AI Travel Intelligence
           </span>
           <div
+            className="footer-stats"
             style={{
               display: "flex",
               gap: 24,
@@ -139,6 +144,7 @@ export default function Footer() {
               fontSize: 12,
               letterSpacing: 2,
               color: "rgba(255,255,255,.25)",
+              flexWrap: "wrap",
             }}
           >
             <span>23+ AI MODULES</span>

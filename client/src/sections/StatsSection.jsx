@@ -91,17 +91,19 @@ export default function StatsSection() {
     >
       <div
         ref={ref}
+        className="stats-grid"
         style={{
           maxWidth: 1200,
           margin: "0 auto",
           display: "grid",
           gridTemplateColumns: "repeat(4,1fr)",
-          padding: "0 32px",
+          padding: "0 16px",
         }}
       >
         {stats.map((s, i) => (
           <div
             key={i}
+            className={i < 3 ? "stats-divider" : ""}
             style={{
               borderRight:
                 i < 3

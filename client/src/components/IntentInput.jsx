@@ -97,10 +97,10 @@ export default function IntentInput({ dbUser }) {
                     disabled={saving || !query.trim()}
                     data-hover
                     style={{
-                        padding: "14px 28px",
+                        padding: "14px 18px",
                         fontFamily: "'Bebas Neue',sans-serif",
-                        fontSize: 16,
-                        letterSpacing: 2,
+                        fontSize: 14,
+                        letterSpacing: 1.5,
                         color: BK,
                         background: saving ? "rgba(204,255,0,.5)" : Y,
                         border: `2px solid ${Y}`,

@@ -41,17 +41,17 @@ export default function WorkSection() {
       id="work"
       style={{
         background: BK,
-        padding: "100px 32px",
+        padding: "80px 16px",
         position: "relative",
         overflow: "hidden",
       }}
     >
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-        <div ref={ref} style={{ marginBottom: 60 }}>
+        <div ref={ref} style={{ marginBottom: 40 }}>
           <h2
             style={{
               fontFamily: "'Bebas Neue',sans-serif",
-              fontSize: "clamp(80px,12vw,160px)",
+              fontSize: "clamp(48px,12vw,160px)",
               color: WH,
               lineHeight: 0.88,
               animation: vis ? "fade-up .7s ease both" : "none",
@@ -63,7 +63,7 @@ export default function WorkSection() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr",
+            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
             gap: 12,
           }}
         >
@@ -76,7 +76,7 @@ export default function WorkSection() {
               }}
               style={{
                 background: s.bg,
-                padding: "48px 36px",
+                padding: "36px 24px",
                 border: "2px solid rgba(255,255,255,0.1)",
                 position: "relative",
                 overflow: "hidden",
@@ -84,6 +84,7 @@ export default function WorkSection() {
                 transition: `all .6s ${i * 0.12}s`,
                 transform: vis ? "translateY(0)" : "translateY(40px)",
                 cursor: "pointer",
+                minHeight: 160,
               }}
               data-hover
               onMouseEnter={(e) => {

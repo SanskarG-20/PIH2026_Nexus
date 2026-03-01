@@ -16,7 +16,7 @@ export default function FeatureCard({ f, i, isBk, vis }) {
       style={{
         background: hovered ? (isBk ? BK : Y) : isBk ? "#f5f5f5" : BK,
         color: hovered ? (isBk ? Y : BK) : isBk ? BK : WH,
-        padding: "40px 32px",
+        padding: "28px 20px",
         border: `2px solid ${BK}`,
         cursor: "pointer",
         transition: "all .25s cubic-bezier(.4,0,.2,1)",

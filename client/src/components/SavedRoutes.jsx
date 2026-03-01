@@ -157,6 +157,8 @@ export default function SavedRoutes({ dbUser, onSelectRoute }) {
                                     alignItems: "center",
                                     gap: 6,
                                     marginBottom: 3,
+                                    minWidth: 0,
+                                    overflow: "hidden",
                                 }}>
                                     <span style={{
                                         fontFamily: "'DM Sans',sans-serif",

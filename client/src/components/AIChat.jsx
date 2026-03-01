@@ -316,10 +316,10 @@ export default function AIChat({ dbUser, onAIResponse, userLocation, weatherCont
                     disabled={loading || !input.trim()}
                     data-hover
                     style={{
-                        padding: "14px 28px",
+                        padding: "14px 18px",
                         fontFamily: "'Bebas Neue',sans-serif",
-                        fontSize: 16,
-                        letterSpacing: 2,
+                        fontSize: 15,
+                        letterSpacing: 1.5,
                         color: BK,
                         background: loading ? "rgba(204,255,0,.5)" : Y,
                         border: `2px solid ${Y}`,

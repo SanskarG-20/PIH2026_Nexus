@@ -126,7 +126,7 @@ export default function MapView({ userLocation, markers = [], routeGeometry = []
             <div
                 style={{
                     border: `1px solid rgba(255,255,255,.08)`,
-                    height: 400,
+                    height: "clamp(280px, 50vw, 400px)",
                     position: "relative",
                     overflow: "hidden",
                 }}

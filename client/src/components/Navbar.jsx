@@ -20,6 +20,7 @@ function FallbackLoginButton({ scrolled, onLogin }) {
         padding: "6px 16px",
         cursor: "pointer",
         transition: "all .2s",
+        minHeight: 44,
       }}
       onMouseEnter={(e) => {
         e.target.style.background = Y;
@@ -47,127 +48,175 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Close menu on resize to desktop
+  useEffect(() => {
+    const onResize = () => { if (window.innerWidth > 768) setMenuOpen(false); };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
   const handleLogin = () => navigate("/sign-in");
 
-  return (
-    <nav
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 9000,
-        background: scrolled ? "rgba(0,0,0,0.85)" : "transparent",
-        backdropFilter: scrolled ? "blur(12px)" : "none",
-        WebkitBackdropFilter: scrolled ? "blur(12px)" : "none",
-        borderBottom: scrolled ? `3px solid ${Y}` : "none",
-        transition: "all .3s",
-        padding: "0 32px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        height: 64,
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <div
-          style={{
-            background: scrolled ? Y : BK,
-            color: scrolled ? BK : Y,
-            fontFamily: "'Bebas Neue',sans-serif",
-            fontSize: 28,
-            padding: "4px 10px",
-            lineHeight: 1,
-            letterSpacing: 2,
-            border: `3px solid ${Y}`,
-          }}
-        >
-          MARG
-          <br />
-          DARSHAK
-        </div>
-        <div
-          style={{
-            width: 10,
-            height: 10,
-            borderRadius: "50%",
-            background: Y,
-            animation: "pulse-ring 2s ease-out infinite",
-          }}
-        />
-      </div>
+  const navLinks = ["Hero", "Intro", "Features", "Stats", "Contact"];
 
-      <div
+  return (
+    <>
+      <nav
         style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 9000,
+          background: scrolled || menuOpen ? "rgba(0,0,0,0.85)" : "transparent",
+          backdropFilter: scrolled || menuOpen ? "blur(12px)" : "none",
+          WebkitBackdropFilter: scrolled || menuOpen ? "blur(12px)" : "none",
+          borderBottom: scrolled ? `3px solid ${Y}` : "none",
+          transition: "all .3s",
+          padding: "0 16px",
           display: "flex",
-          gap: 32,
-          fontFamily: "'Bebas Neue',sans-serif",
-          fontSize: 18,
-          letterSpacing: 2,
+          alignItems: "center",
+          justifyContent: "space-between",
+          height: 64,
         }}
       >
-        {["Hero", "Intro", "Features", "Stats", "Contact"].map((item) => (
-          <a
-            key={item}
-            href={`#${item.toLowerCase()}`}
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div
             style={{
-              color: scrolled ? Y : BK,
-              textDecoration: "none",
-              transition: "color .2s",
+              background: scrolled || menuOpen ? Y : BK,
+              color: scrolled || menuOpen ? BK : Y,
+              fontFamily: "'Bebas Neue',sans-serif",
+              fontSize: 22,
+              padding: "4px 8px",
+              lineHeight: 1,
+              letterSpacing: 2,
+              border: `3px solid ${Y}`,
             }}
-            data-hover
-            onMouseEnter={(e) => (e.target.style.color = Y)}
-            onMouseLeave={(e) =>
-              (e.target.style.color = scrolled ? Y : BK)
-            }
           >
-            {item}
-          </a>
-        ))}
-      </div>
-
-      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-        {clerkAvailable ? (
-          <Suspense fallback={<FallbackLoginButton scrolled={scrolled} onLogin={handleLogin} />}>
-            <NavAuthButtons scrolled={scrolled} onLogin={handleLogin} />
-          </Suspense>
-        ) : (
-          <FallbackLoginButton scrolled={scrolled} onLogin={handleLogin} />
-        )}
-
-        {/* Hamburger menu */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 5,
-            cursor: "pointer",
-          }}
-          data-hover
-          onClick={() => setMenuOpen(!menuOpen)}
-        >
+            MARG
+            <br />
+            DARSHAK
+          </div>
           <div
             style={{
-              width: 28,
-              height: 3,
-              background: scrolled ? Y : BK,
-              transition: "all .3s",
-              transform: menuOpen
-                ? "rotate(45deg) translate(5px,5px)"
-                : "none",
-            }}
-          />
-          <div
-            style={{
-              width: 28,
-              height: 3,
-              background: scrolled ? Y : BK,
-              transition: "all .3s",
-              opacity: menuOpen ? 0 : 1,
+              width: 10,
+              height: 10,
+              borderRadius: "50%",
+              background: Y,
+              animation: "pulse-ring 2s ease-out infinite",
             }}
           />
         </div>
-      </div>
-    </nav>
+
+        {/* Desktop links */}
+        <div
+          className="nav-links-desktop"
+          style={{
+            display: "flex",
+            gap: 32,
+            fontFamily: "'Bebas Neue',sans-serif",
+            fontSize: 18,
+            letterSpacing: 2,
+          }}
+        >
+          {navLinks.map((item) => (
+            <a
+              key={item}
+              href={`#${item.toLowerCase()}`}
+              style={{
+                color: scrolled ? Y : BK,
+                textDecoration: "none",
+                transition: "color .2s",
+                minHeight: 44,
+                display: "flex",
+                alignItems: "center",
+              }}
+              data-hover
+              onMouseEnter={(e) => (e.target.style.color = Y)}
+              onMouseLeave={(e) =>
+                (e.target.style.color = scrolled ? Y : BK)
+              }
+            >
+              {item}
+            </a>
+          ))}
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          {clerkAvailable ? (
+            <Suspense fallback={<FallbackLoginButton scrolled={scrolled || menuOpen} onLogin={handleLogin} />}>
+              <NavAuthButtons scrolled={scrolled || menuOpen} onLogin={handleLogin} />
+            </Suspense>
+          ) : (
+            <FallbackLoginButton scrolled={scrolled || menuOpen} onLogin={handleLogin} />
+          )}
+
+          {/* Hamburger */}
+          <div
+            className="nav-hamburger"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 5,
+              cursor: "pointer",
+              padding: 10,
+              minWidth: 44,
+              minHeight: 44,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+            data-hover
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
+            <div
+              style={{
+                width: 28,
+                height: 3,
+                background: scrolled || menuOpen ? Y : BK,
+                transition: "all .3s",
+                transform: menuOpen
+                  ? "rotate(45deg) translate(5px,5px)"
+                  : "none",
+              }}
+            />
+            <div
+              style={{
+                width: 28,
+                height: 3,
+                background: scrolled || menuOpen ? Y : BK,
+                transition: "all .3s",
+                opacity: menuOpen ? 0 : 1,
+              }}
+            />
+            <div
+              style={{
+                width: 28,
+                height: 3,
+                background: scrolled || menuOpen ? Y : BK,
+                transition: "all .3s",
+                transform: menuOpen
+                  ? "rotate(-45deg) translate(5px,-5px)"
+                  : "none",
+              }}
+            />
+          </div>
+        </div>
+      </nav>
+
+      {/* Mobile fullscreen menu */}
+      {menuOpen && (
+        <div className="nav-mobile-menu">
+          {navLinks.map((item) => (
+            <a
+              key={item}
+              href={`#${item.toLowerCase()}`}
+              onClick={() => setMenuOpen(false)}
+            >
+              {item.toUpperCase()}
+            </a>
+          ))}
+        </div>
+      )}
+    </>
   );
 }

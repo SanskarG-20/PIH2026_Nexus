@@ -205,7 +205,7 @@ export default function RoutePanel({ userLocation, markers = [], onRouteCalculat
                             )}
 
                             {/* Mode label */}
-                            <div style={{ minWidth: 140, display: "flex", alignItems: "center", gap: 10 }}>
+                            <div style={{ minWidth: 0, display: "flex", alignItems: "center", gap: 10 }}>
                                 <div style={{
                                     width: 36,
                                     height: 36,
@@ -236,7 +236,7 @@ export default function RoutePanel({ userLocation, markers = [], onRouteCalculat
                             </div>
 
                             {/* Stats */}
-                            <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
+                            <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
                                 <StatItem
                                     label="DISTANCE"
                                     value={route.distance}
@@ -304,7 +304,7 @@ export default function RoutePanel({ userLocation, markers = [], onRouteCalculat
                                     flexDirection: "column",
                                     gap: 4,
                                 }}>
-                                    <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                                    <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
                                         <span style={{
                                             width: 8, height: 8, borderRadius: "50%",
                                             background: route.lineColor || Y,
@@ -351,7 +351,7 @@ export default function RoutePanel({ userLocation, markers = [], onRouteCalculat
                                     flexDirection: "column",
                                     gap: 4,
                                 }}>
-                                    <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                                    <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
                                         <span style={{
                                             width: 8, height: 8, borderRadius: "50%",
                                             background: "#22c55e",

@@ -72,7 +72,7 @@ export default function FeaturesSection() {
       id="features"
       style={{
         background: WH,
-        padding: "100px 32px",
+        padding: "80px 16px",
         position: "relative",
         overflow: "hidden",
       }}
