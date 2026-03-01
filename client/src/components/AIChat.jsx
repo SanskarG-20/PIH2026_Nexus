@@ -1107,7 +1107,7 @@ function TransportCard({ opt, glowing }) {
                 )}
                 {opt.safetyScore != null && (
                     <TransportStat
-                        label="\u25C9 SAFETY"
+                        label={"\u25C9 SAFETY"}
                         value={opt.safetyScore + "/10"}
                         color={
                             opt.safetyScore >= 8 ? "#22c55e" :
@@ -1118,7 +1118,7 @@ function TransportCard({ opt, glowing }) {
                 )}
                 {opt.ecoScore != null && (
                     <TransportStat
-                        label="\u25C7 ECO"
+                        label={"\u25C7 ECO"}
                         value={opt.ecoScore + "%"}
                         color={
                             opt.ecoScore >= 80 ? "#22c55e" :

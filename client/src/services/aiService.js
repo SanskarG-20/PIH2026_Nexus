@@ -108,11 +108,13 @@ export async function askMargDarshak(userMessage, chatHistory = [], userLocation
     // Inject user's current location context into the prompt
     let locationContext = "";
     if (userLocation?.lat && userLocation?.lng) {
-        locationContext = `\n\n[CONTEXT] The user's current location is: lat=${userLocation.lat.toFixed(4)}, lng=${userLocation.lng.toFixed(4)}`;
+        locationContext = `\n\n[CRITICAL LOCATION CONTEXT] The user is currently located at: lat=${userLocation.lat.toFixed(4)}, lng=${userLocation.lng.toFixed(4)}`;
         if (userLocation.city) {
-            locationContext += `, city: ${userLocation.city}`;
+            locationContext += `, city/area: ${userLocation.city}`;
+            locationContext += `.\nIMPORTANT: The user is in ${userLocation.city}. ALL transport routes MUST start from ${userLocation.city} or the nearest station/stop to ${userLocation.city}. Use "${userLocation.city}" area as the origin for boarding stations, bus stops, and cab pickups. Do NOT suggest routes starting from unrelated areas. For example, if the user is in Dahisar, the boarding point must be a station/stop near Dahisar — NOT Versova, Andheri, or any other distant area.`;
+        } else {
+            locationContext += ". Use this as the ORIGIN for all route calculations. ALL transport boarding points must be near these coordinates.";
         }
-        locationContext += ". Use this to give nearby recommendations when relevant.";
     }
 
     const messages = [
