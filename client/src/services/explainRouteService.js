@@ -45,8 +45,9 @@ function parseDurationMin(durationStr) {
 function parseCostAmount(costStr) {
     if (!costStr) return null;
     if (costStr === "Free" || costStr === "₹0") return 0;
-    const m = costStr.replace(/[^\d]/g, "");
-    return m ? parseInt(m) : null;
+    // Extract only the FIRST number (handles ranges like "₹400-580")
+    const m = costStr.match(/[\d,]+/);
+    return m ? parseInt(m[0].replace(/,/g, "")) : null;
 }
 
 /**
